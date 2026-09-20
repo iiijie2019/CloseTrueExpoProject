@@ -4,6 +4,7 @@ import { ActivityIndicator, Linking, Modal, ScrollView, StyleSheet, View } from 
 import { useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, type IconName } from '@/components/grove/icon';
+import { UpdatesPanel } from '@/components/grove/updates-panel';
 import { Button, Chip, Glass, Page, Reveal, SectionLabel, Tap, T, Title, ui } from '@/components/grove/ui';
 import { morphemes, wordById, words } from '@/data/lexicon';
 import { decodeBackup, encodeBackup, previewImport } from '@/domain/backup';
@@ -60,6 +61,7 @@ export default function MineScreen() {
       <View style={s.divider}/><T style={[s.settingTitle, { marginBottom: 13 }]}>{t('speechRate')}</T><View style={ui.chips}><Chip label={t('normal')} selected={!data.preferences.slowSpeech} onPress={() => void setPreference('slowSpeech', false)}/><Chip label={t('slow')} selected={data.preferences.slowSpeech} onPress={() => void setPreference('slowSpeech', true)}/></View>
     </View></Reveal>
 
+    <UpdatesPanel/>
     <Reveal delay={180} style={{ marginTop: 31 }}><SectionLabel title={t('dataTitle')} subtitle={t('dataSub')}/><View style={[ui.card, { paddingVertical: 5 }]}>
       <SettingRow icon="download" title={t('export')} description={t('exportHint')} onPress={() => void exportFile()} disabled={busy}/>
       <View style={{ height: 1, backgroundColor: c.line }}/><SettingRow icon="upload" title={t('import')} description={t('importHint')} onPress={() => void importFile()} disabled={busy}/>

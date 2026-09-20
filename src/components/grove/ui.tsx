@@ -21,7 +21,7 @@ export function Tap({ children, style, disabled, onPressIn, onPressOut, ...props
   const scale = useSharedValue(1);
   const reduced = useReducedMotion();
   const motion = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-  return <AnimatedPressable {...props} disabled={disabled} accessibilityRole={props.accessibilityRole ?? 'button'} style={[style, motion, disabled && { opacity: 0.5 }]} onPressIn={e => { if (!reduced) scale.value = withSpring(0.975, { damping: 20, stiffness: 320 }); onPressIn?.(e); }} onPressOut={e => { scale.value = withSpring(1, { damping: 15, stiffness: 230 }); onPressOut?.(e); }}>{children}</AnimatedPressable>;
+  return <AnimatedPressable {...props} disabled={disabled} aria-disabled={disabled ?? undefined} aria-expanded={props['aria-expanded'] ?? props.accessibilityState?.expanded} aria-selected={props.accessibilityRole === 'tab' ? props.accessibilityState?.selected : undefined} accessibilityRole={props.accessibilityRole ?? 'button'} style={[style, motion, disabled && { opacity: 0.5 }]} onPressIn={e => { if (!reduced) scale.value = withSpring(0.975, { damping: 20, stiffness: 320 }); onPressIn?.(e); }} onPressOut={e => { scale.value = withSpring(1, { damping: 15, stiffness: 230 }); onPressOut?.(e); }}>{children}</AnimatedPressable>;
 }
 export function Reveal({ children, delay = 0, style }: React.PropsWithChildren<{ delay?: number; style?: StyleProp<ViewStyle> }>) {
   const reduced = useReducedMotion();
@@ -53,7 +53,7 @@ export function SectionLabel({ title, subtitle, right }: { title: string; subtit
 }
 export function Chip({ label, selected, onPress, icon, tint = 'green' }: { label: string; selected?: boolean; onPress: () => void; icon?: IconName; tint?: 'green' | 'orange' }) {
   const color = tint === 'orange' ? c.orange : c.green;
-  return <Tap onPress={onPress} accessibilityState={{ selected: !!selected }} style={[s.chip, selected && { backgroundColor: tint === 'orange' ? c.peach : c.mint, borderColor: tint === 'orange' ? '#EDD6C0' : '#CEE0D0' }]}>{icon && <Icon name={icon} size={15} color={selected ? color : c.muted}/>}<T style={{ fontSize: 13, fontWeight: selected ? '600' : '400', color: selected ? color : c.muted }}>{label}</T></Tap>;
+  return <Tap onPress={onPress} accessibilityState={{ selected: !!selected }} aria-pressed={!!selected} style={[s.chip, selected && { backgroundColor: tint === 'orange' ? c.peach : c.mint, borderColor: tint === 'orange' ? '#EDD6C0' : '#CEE0D0' }]}>{icon && <Icon name={icon} size={15} color={selected ? color : c.muted}/>}<T style={{ fontSize: 13, fontWeight: selected ? '600' : '400', color: selected ? color : c.muted }}>{label}</T></Tap>;
 }
 export function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (text: string) => void; placeholder: string }) {
   const { t } = useApp();

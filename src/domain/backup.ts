@@ -26,11 +26,19 @@ export function validateData(value: unknown): UserData {
 }
 
 export function encodeBackup(data: UserData) {
-  return JSON.stringify({ format: BACKUP_FORMAT, schemaVersion: 1, dictionaryVersion: 'starter-1', exportedAt: new Date().toISOString(), data: { ...data, recent: [] } }, null, 2);
+  return JSON.stringify({ format: BACKUP_FORMAT, schemaVersion: 1, dictionaryVersion: 'grove-2', exportedAt: new Date().toISOString(), data: { ...data, recent: [] } }, null, 2);
 }
 
 export function decodeBackup(text: string): { data: UserData; exportedAt: string } {
-  if (text.length > MAX_BYTES || new TextEncoder().encode(text).byteLength > MAX_BYTES) throw new Error('invalid-backup');
+  if (text.length > MAX_BYTES) throw new Error('invalid-backup');
+  // Count UTF-8 bytes without depending on a browser-only TextEncoder global.
+  let bytes = 0;
+  for (let i = 0; i < text.length; i++) {
+    const point = text.codePointAt(i)!;
+    bytes += point <= 0x7f ? 1 : point <= 0x7ff ? 2 : point <= 0xffff ? 3 : 4;
+    if (point > 0xffff) i++;
+    if (bytes > MAX_BYTES) throw new Error('invalid-backup');
+  }
   const value: unknown = JSON.parse(text);
   if (!object(value) || value.format !== BACKUP_FORMAT || value.schemaVersion !== 1 || typeof value.exportedAt !== 'string' || !Number.isFinite(Date.parse(value.exportedAt))) throw new Error('invalid-backup');
   return { data: validateData(value.data), exportedAt: value.exportedAt };

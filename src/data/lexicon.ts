@@ -1,10 +1,11 @@
 import type { Localized, Morpheme, PartOfSpeech, Word } from '@/domain/models';
+import { extraMorphemes, extraWords } from './lexicon-extra';
 
 const bi = (zh: string, en: string): Localized => ({ zh, en });
 
 // Small, editorial starter collection. These are learning families, not a claim
 // that every member is directly derived from the modern English root spelling.
-export const morphemes: Morpheme[] = [
+const starterMorphemes: Morpheme[] = [
   { id: 'act', label: 'act', kind: 'root', meaning: bi('做 · 行动', 'do · act'), origin: bi('拉丁语 agere', 'Latin agere'), description: bi('从行动到活动，用一组词理解「做」的不同表达。词族关系不等于直接派生关系。', 'From taking action to staying active: explore different expressions of doing. A word family is not a direct derivation tree.'), color: 'mint' },
   { id: 'spect', label: 'spect', kind: 'root', meaning: bi('看 · 观察', 'look · observe'), origin: bi('拉丁语 spectare / specere', 'Latin spectare / specere'), description: bi('把「看」放进不同语境：仔细看、回头看，以及看向未来。', 'Look closely, look back, and look ahead. Different contexts bring this family to life.'), color: 'peach' },
   { id: 'port', label: 'port', kind: 'root', meaning: bi('携带 · 运送', 'carry · transport'), origin: bi('拉丁语 portare', 'Latin portare'), description: bi('货物、信息和随身物品，都能帮助你记住「携带」这一含义。', 'Goods, information, and things you carry make this family easy to remember.'), color: 'blue' },
@@ -25,7 +26,7 @@ function w(id: string, roots: string[], pos: PartOfSpeech[], zh: string, en: str
 
 // Definitions and examples are concise, original learning notes. IPA uses a
 // broad American transcription; an OS voice may realize it differently.
-export const words: Word[] = [
+const starterWords: Word[] = [
   w('act', ['act'], ['verb', 'noun'], '行动；表演；行为', 'to do something; to perform; a deed', 'ækt', ['act'], 'Small acts of kindness can change someone’s day.', '小小的善举可以改变一个人的一天。', ['acts', 'acted', 'acting']),
   w('action', ['act'], ['noun', 'verb'], '行动；行为；着手处理', 'something done; to put a request into effect', 'ˈækʃən', ['act', '-ion'], 'Our team took action to reduce waste.', '我们团队采取行动来减少浪费。', ['actions', 'actioned', 'actioning'], bi('take action：采取行动。名词用法最常见；动词 action 常见于商务语境。', 'Take action means to do something about a situation. The verb action is used especially in business.')),
   w('active', ['act'], ['adjective'], '活跃的；积极的', 'involved, energetic, or doing things', 'ˈæktɪv', ['act', '-ive'], 'Walking is a simple way to stay active.', '散步是保持活力的简单方式。', ['more active', 'most active']),
@@ -77,6 +78,13 @@ export const words: Word[] = [
   w('hopeless', ['less'], ['adjective'], '没有希望的', 'having little or no hope', 'ˈhoʊpləs', ['hope', '-less'], 'The situation was difficult, but not hopeless.', '情况很困难，但并非毫无希望。'),
 ];
 
+export const morphemes = [...starterMorphemes, ...extraMorphemes];
+// Existing word IDs remain unchanged so saved marks survive dictionary updates.
+const additionalFamilies: Record<string, string[]> = {
+  telephone: ['tele'], microphone: ['micro'], biography: ['graph'],
+  actively: ['ly'], portable: ['able'],
+};
+export const words = [...starterWords.map(word => ({ ...word, morphemes: [...word.morphemes, ...(additionalFamilies[word.id] ?? [])] })), ...extraWords];
 export const wordById = new Map(words.map(word => [word.id, word]));
 export const morphemeById = new Map(morphemes.map(root => [root.id, root]));
 export const familyWords = (id: string) => words.filter(word => word.morphemes.includes(id));

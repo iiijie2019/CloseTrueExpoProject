@@ -69,5 +69,6 @@ test('status labels and parameterized messages support both UI languages', () =>
   assert.equal(translate('zh', 'known'), '已知');
   assert.equal(translate('en', 'known'), 'Known');
   assert.equal(translate('en', 'wordCountShort', { count: 12 }), '12 words');
+  assert.equal(translate('en', 'wordCountShort', { count: 1 }), '1 word');
   assert.equal(translate('zh', 'wordCountShort', { count: 12 }), '12 个单词');
 });

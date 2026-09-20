@@ -5,7 +5,7 @@ const en = {
   hello: 'Let your words grow.', welcome: 'Make connections. Find meaning. Learn at your own pace.',
   offline: 'Made for slow learning', known: 'Known', focus: 'Following', unknown: 'Unknown', all: 'All',
   knownWords: 'Words you know', focusWords: 'Words to revisit', wordsUnit: 'words', rootsUnit: 'families',
-  explore: 'A little exploration', exploreSub: 'Two ways to find your next connection',
+  explore: 'A little exploration', exploreSub: 'Find your next word, family or sentence',
   wordFilter: 'Find your words', wordFilterSub: 'By word type, by what you know.\nA collection that grows with you.',
   rootStudy: 'Start at the root', rootStudySub: 'One small root. A whole family.\nSee how words come together.',
   exploreWords: 'Explore words', exploreRoots: 'Follow a root', handpicked: 'A WORD TO KEEP',
@@ -40,7 +40,7 @@ const en = {
   exportSuccess: 'Backup file created. Save it somewhere outside the app.', operationError: 'This could not be completed. Please try again.',
   invalidBackup: 'This file is not a supported Word Grove backup. Your data has not changed.',
   importTitle: 'Bring your words home', importPreview: '{added} new · {conflicts} conflicts · {unmatched} not in this collection',
-  importBody: 'Choose how to handle words marked differently. Other local records will be kept. A recovery copy is saved before merging.',
+  importBody: 'Choose how to handle words marked differently. Using the backup also restores its language and voice preferences. Other local records will be kept. A recovery copy is saved before merging.',
   keepLocal: 'Keep my current marks', useImported: 'Use backup marks', cancel: 'Cancel', importDone: 'Your words have been imported.',
   restore: 'Undo the last import', restoreHint: 'Return to the recovery copy', restoreDone: 'The recovery copy has been restored.',
   notFound: 'This word is not in this collection yet.', notFoundRoot: 'This family is not in this collection yet.',
@@ -48,6 +48,7 @@ const en = {
   backupDate: 'Backup created {date}', unmatched: '{count} imported records are waiting for a matching word. They are kept in your backups.',
   clearSearch: 'Clear search', sourceUnavailable: 'Could not open the reference.', selectStatus: 'Mark {word} as {status}',
   wordCountShort: '{count} words', learning: 'LEARN SOMETHING LOVELY', selected: 'Selected',
+  sentenceTitle: 'Give your words a little order.', sentenceSubtitle: 'Subjects, actions, places, and time. See how a sentence comes together.', sentenceButton: 'Explore sentences', rootEntry: 'Word families',
 } as const;
 
 export type MessageKey = keyof typeof en;
@@ -56,7 +57,7 @@ const zh: Record<MessageKey, string> = {
   hello: '让单词，慢慢生长。', welcome: '从一个词，到一片新的世界。按自己的节奏，发现语言的美好。',
   offline: '离线，也能慢慢学', known: '已知', focus: '关注', unknown: '未知', all: '全部',
   knownWords: '已掌握的单词', focusWords: '想多看的单词', wordsUnit: '个单词', rootsUnit: '组词族',
-  explore: '开始一段小探索', exploreSub: '两种方式，遇见下一个新知',
+  explore: '开始一段小探索', exploreSub: '从单词、词根或句子，遇见下一个新知',
   wordFilter: '找到你的单词', wordFilterSub: '按词性，按熟悉程度。\n让学习，更合心意。',
   rootStudy: '从词根，向外生长', rootStudySub: '记住一个词根，认识一整个词族。\n看见单词之间的联系。',
   exploreWords: '筛选单词', exploreRoots: '探索词根词缀', handpicked: '值得认识的一个词',
@@ -91,7 +92,7 @@ const zh: Record<MessageKey, string> = {
   exportSuccess: '备份文件已生成，请保存在应用之外。', operationError: '暂时无法完成这个操作，请再试一次。',
   invalidBackup: '这不是受支持的词间备份文件，你的数据没有改变。',
   importTitle: '让熟悉的单词，回到身边', importPreview: '新增 {added} 个 · 冲突 {conflicts} 个 · 待匹配 {unmatched} 个',
-  importBody: '为状态不同的单词选择处理方式，其他本机记录会保留。合并前会保存一份恢复副本。',
+  importBody: '为状态不同的单词选择处理方式。选择使用备份时，也会恢复备份中的语言与朗读偏好。其他本机记录会保留，合并前会保存一份恢复副本。',
   keepLocal: '冲突时保留本机标记', useImported: '冲突时使用备份标记', cancel: '取消', importDone: '你的单词，已经回到身边。',
   restore: '撤销上一次导入', restoreHint: '恢复至导入前的本机记录', restoreDone: '已恢复至导入前的记录。',
   notFound: '这个单词还没有收录，之后再来看看。', notFoundRoot: '这组词族还没有收录，之后再来看看。',
@@ -99,10 +100,16 @@ const zh: Record<MessageKey, string> = {
   backupDate: '备份生成于 {date}', unmatched: '有 {count} 条导入记录等待匹配词条，已保留在你的备份中。',
   clearSearch: '清除搜索', sourceUnavailable: '暂时无法打开参考链接。', selectStatus: '将 {word} 标记为{status}',
   wordCountShort: '{count} 个单词', learning: '今天，认识一点美好', selected: '已选择',
+  sentenceTitle: '把单词，放进句子里。', sentenceSubtitle: '谁、做什么、在哪里、什么时候。看懂一句话是怎么组成的。', sentenceButton: '学习语句拆解', rootEntry: '词根词缀',
 };
 
 export function translate(language: Language, key: MessageKey, values?: Record<string, string | number>) {
-  let result: string = (language === 'zh' ? zh : en)[key];
+  const singular: Partial<Record<MessageKey, string>> = {
+    matches: '1 word to explore', familyCount: '1 word in this family',
+    collectionSub: '1 word marked, one connection at a time.', wordCountShort: '1 word',
+    unmatched: '1 imported record is waiting for a matching word. It is kept in your backups.',
+  };
+  let result: string = language === 'en' && Number(values?.count) === 1 ? singular[key] ?? en[key] : (language === 'zh' ? zh : en)[key];
   for (const [name, value] of Object.entries(values ?? {})) result = result.replaceAll(`{${name}}`, String(value));
   return result;
 }

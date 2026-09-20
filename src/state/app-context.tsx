@@ -23,6 +23,7 @@ type Context = {
   notify: (text: string, action?: () => void) => void;
   importData: (incoming: UserData, preferImported: boolean) => Promise<void>;
   restore: () => Promise<void>; hasRecovery: boolean; reload: () => void;
+  flushPendingWrites: () => Promise<void>;
 };
 const AppContext = createContext<Context | null>(null);
 
@@ -151,6 +152,7 @@ export function AppProvider({ children }: React.PropsWithChildren) {
   return <AppContext.Provider value={{ data, ready, loadError, language, speaking, toast, t,
     local: value => value[language], status: id => data.records[id]?.status ?? 'unknown',
     mark, setPreference, visit, play, stop, notify, importData, restore, hasRecovery, reload: () => setAttempt(a => a + 1),
+    flushPendingWrites: async () => { await queue.current; },
   }}>{children}</AppContext.Provider>;
 }
 export function useApp() {

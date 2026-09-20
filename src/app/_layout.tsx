@@ -20,6 +20,7 @@ export default function RootLayout() {
     <AppGate><Stack screenOptions={{ headerShown: false, animation: reduced ? 'none' : 'slide_from_right', contentStyle: { backgroundColor: palette.background } }}>
       <Stack.Screen name="(tabs)"/><Stack.Screen name="words"/><Stack.Screen name="roots"/>
       <Stack.Screen name="root/[id]"/><Stack.Screen name="word/[id]"/>
+      <Stack.Screen name="sentences"/><Stack.Screen name="sentence/[id]"/>
     </Stack></AppGate>
     <ToastHost/>
   </AppProvider></ThemeProvider></GestureHandlerRootView>;

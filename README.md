@@ -1,85 +1,69 @@
-# Welcome to your Expo app 👋
+# Word Grove · 词间
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+基于 Expo SDK 57、React Native 和 Expo Router 的英语学习 App。明亮、舒缓的界面，首页与我的两个底部 Tab，无登录和打卡。
 
-## Get started
+## 当前功能
 
-1. Install dependencies
+- 200 个离线词条、32 组词根词缀，中英释义、词性、IPA、例句与常见变化。
+- 单词组合筛选、已知／未知／关注标记、撤销、首页统计和词族树。
+- 12 个句子课程：点按彩色词块查看主语、动词、时间、地点、来源等作用；整句／词块朗读；点选排列、提示与替代语序反馈。
+- 中文／英文／跟随系统，英美语音偏好及慢速朗读。
+- 原生 SQLite 和 Web localStorage；JSON 导入导出、冲突预览、合并前恢复副本。
+- Expo Updates：启动检查、手动检查下载、保存完学习记录后由用户应用更新。
 
-   ```bash
-   npm install
-   ```
+## 运行与检查
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+使用项目已有的 pnpm 锁文件，Node.js 22.13 或更新版本。
 
 ```bash
-npm run reset-project
+pnpm install --frozen-lockfile
+pnpm start
+pnpm web
+pnpm typecheck
+pnpm test
+pnpm exec expo install --check
+pnpm exec expo export --platform all
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+`expo export` 验证 Web 与 Android/iOS 的 JS/资源打包，不代表原生编译、签名或真机验收。`pnpm lint` 仍是模板命令，项目尚未配置 ESLint。Expo Go 可用于常规页面开发；新增原生能力及热更新需重新安装对应构建。TTS 使用系统提供的英语声音，音标独立来自内置数据；真机需另验语音包、静音状态与发音。
 
-### Other setup steps
+## 目录结构
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```text
+src/app/                 Expo Router 页面与两个 Tab
+  words.tsx              单词筛选
+  word/[id].tsx          词条详情
+  roots.tsx              词根词缀列表
+  root/[id].tsx          词族树／列表
+  sentences.tsx          句子课程与主题筛选
+  sentence/[id].tsx      词块解释与语序练习
+src/components/grove/    主题组件、矢量图、读音按钮、更新面板
+src/data/                词库、句子内容及 native/web 存储适配
+src/domain/              类型、备份校验合并、更新流程
+src/state/               状态提交队列、语言、TTS、恢复操作
+src/i18n/                界面翻译
+src/platform/            native/web 文件迁移
+src/theme/               颜色、字体与样式
+tests/                   数据完整性、备份、搜索、语序与更新测试
+```
 
-## Learn more
+业务内容和个人数据分开：扩充静态词库无需清空标记；原生个人记录写入应用私有 SQLite，Web 写入当前站点 localStorage。卸载应用、清理浏览器数据或切换站点不会自动同步记录，请用导出文件迁移。
 
-To learn more about developing your project with Expo, look at the following resources:
+## 构建和更新
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+已关联现有 EAS 项目，`eas.json` 配置 development、preview、production。首次接入 updates 后，先构建 preview 安装包：
 
-## Join the community
+```bash
+eas build --platform android --profile preview
+eas update --channel preview --environment preview --message "Describe the change"
+```
 
-Join our community of developers creating universal apps.
+正式发布、本地构建、iOS 设置、回退命令与验证步骤见 [Expo 热更新说明](docs/expo-updates.md)。更新不会安装新的原生依赖；fingerprint 改变时需要匹配的新安装包。
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 设计与内容
 
+- [完整设计方案及当前实现](docs/english-learning-app-design.md)
+- [词库与句子内容维护](docs/vocabulary-content.md)
+- [Expo SDK 57 版本文档](https://docs.expo.dev/versions/v57.0.0/)
 
-命令
-打包必须指定 expo 通道 production 或者 development
-// 线上打ios包 eas build --platform ios
-
-// 线上打安卓包 eas build --platform android
-
-//本地打包 // ios 线上打包也挺快，四五分钟左右，可以优先使用线上打包。 //安卓本地打包和线上打包用的都是存储云端的 jks 证书 eas build --platform ios --profile development --local eas build --platform ios --profile production --local
-
-eas build --platform android --profile development --local eas build --platform android --profile production --local
-
-// 生成ios android 文件夹 会清除安卓ios当前缓存覆盖文件，慎用 npx expo prebuild
-
-//重新生成原生文件夹（清除之前的原生修改）。 npx expo prebuild --clean
-
-!!!只更新配置（保留自定义原生代码），修改完 app.json 后必须要执行一遍，更新android ios 文件夹内容
-pnpm exec expo prebuild
-
-热更新必看
-//通过 EAS Update 推送到某个通道，无需提交git eas update --branch production --message "test update 001"
-
-什么能更新，什么不能？
-
-能更新：JS 代码、样式、图片、字体等资源文件。 不能更新：app.json 中的原生配置（如权限修改）、原生依赖包（如添加了 expo-camera）、App 的 Icon 和启动图。如果改了这些，必须重新 eas build 提审应用商店！ RuntimeVersion 隔离机制： 假设你的 App 版本是 1.0.0，你发布了热更新 A。后来你加了原生功能，发布了 1.1.0 版本到商店。此时，运行 1.0.0 的老用户不会收到热更新 A，因为它们的 runtimeVersion 不同（基于 appVersion 策略）。这保护了老用户不会因为缺少原生依赖而白屏崩溃。
-
-回滚操作： 如果热更新发出去后发现有大 Bug 导致白屏，你可以使用 eas update:rollback 命令快速回滚到上一个版本。
-
-强制更新 vs 柔性更新： 默认是柔性更新（下次启动生效）。如果你遇到严重 Bug 需要立刻生效，可以在发布时加上 --force 参数，但这会导致用户在使用过程中 App 突然重启，需谨慎使用： eas update --branch production --message "紧急修复白屏" --force
+目前内置的是精选教学内容，尚未接入完整授权词典或任意句子的自动解析服务。词根树表达学习关联；IPA 使用美式宽式转写，英式朗读设置不会改变 IPA。词条详情提供外部词典核查入口。
