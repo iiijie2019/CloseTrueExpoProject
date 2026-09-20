@@ -1,7 +1,9 @@
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 
-export type IconName = 'leaf' | 'home' | 'user' | 'arrow' | 'back' | 'search' | 'close' | 'check' | 'star' | 'sound' | 'stop' | 'filter' | 'tree' | 'book' | 'globe' | 'download' | 'upload' | 'chevron' | 'plus' | 'minus' | 'shield' | 'spark' | 'external' | 'undo';
+export type IconName = 'leaf' | 'home' | 'user' | 'arrow' | 'back' | 'search' | 'close' | 'check' | 'star' | 'sound' | 'stop' | 'filter' | 'tree' | 'book' | 'globe' | 'download' | 'upload' | 'chevron' | 'plus' | 'minus' | 'shield' | 'spark' | 'external' | 'undo' | 'refresh' | 'settings';
 const paths: Partial<Record<IconName, string>> = {
+  refresh: 'M20 7V3M20 7H16M20 7A9 9 0 0 0 4 8M4 17V21M4 17H8M4 17A9 9 0 0 0 20 16',
+  settings: 'M4 6H20M4 12H20M4 18H20M8 4V8M16 10V14M10 16V20',
   leaf: 'M5 20C5 11 12 5 20 4C20 12 17 19 9 18M5 20L15 10',
   home: 'M3 10L12 3L21 10V20H15V14H9V20H3Z',
   user: 'M4 21C4 15 20 15 20 21M16 7A4 4 0 1 1 8 7A4 4 0 1 1 16 7',

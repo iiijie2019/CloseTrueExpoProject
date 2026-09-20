@@ -1,11 +1,13 @@
 # 词库与句子内容维护
 
-当前离线内容为 **200 个独立词条、32 组词根词缀、12 个句子练习**。词库由原来的 49 个词条扩充而来，采用本项目编写的简短教学释义和例句，没有批量复制参考站内容，也没有接入在线生成接口。
+当前离线内容为 **248 个独立词条、32 组词根词缀、12 个句子练习**。词库由原来的 49 个词条扩充而来，采用本项目编写的简短教学释义和例句，没有批量复制参考站内容，也没有接入在线生成接口。
 
 ## 数据入口
 
 - `src/data/lexicon.ts`：原有词条、合并后的查询 API 和稳定 ID；旧学习记录可继续匹配。
 - `src/data/lexicon-extra.ts`：新增词族和词条。每条提供中英释义、词性数组、美式宽式 IPA、学习拆分、双语例句，适用时提供屈折变化或用法说明。
+- `src/data/lexicon-everyday.ts`：48 个常用基础名词，含释义、IPA、双语例句与常见词形；不为基础词编造词根。
+- `src/data/word-topics.ts`：六类编辑主题，通过稳定词条 ID 分类，不用释义关键词猜测。
 - `src/data/sentences.ts`：12 课、词块角色、解释、目标语序和替代语序。列表与详情从相同数据渲染。
 
 单词与词族是多对多关系，例如 photography 可同时出现在 photo 与 graph 中。统计按唯一单词 ID 计算。词根树按词性组织，是学习分组，并不声称每一层都是历史派生关系。`parts` 是教学用拆分，有时保留完整词干；不能靠字符串切割生成词源结论。
@@ -30,4 +32,11 @@
 
 后续扩展到千词或万词规模时，应先确定获准使用的词典数据来源和许可，再引入构建脚本、来源字段、版本映射和全文检索，避免用未经审核的机械拆词堆数量。
 
-参考与核查入口：[用户提供的 Morpheme Lexicon](https://morphemelexicon.com/#/r/patho)、[Cambridge 的副词语序说明](https://dictionary.cambridge.org/grammar/british-grammar/adverbs-and-adverb-phrases-position)、[Cambridge telecommunication 词条](https://dictionary.cambridge.org/us/dictionary/english/telecommunication)。这些是参考链接，未下载其整部词典或复制例句。应用内单词详情另提供对应 Wiktionary 条目，便于逐词核对。
+参考与核查入口：[用户提供的 Morpheme Lexicon](https://morphemelexicon.com/#/r/patho)、[Cambridge 的副词语序说明](https://dictionary.cambridge.org/grammar/british-grammar/adverbs-and-adverb-phrases-position)、[Cambridge telecommunication 词条](https://dictionary.cambridge.org/us/dictionary/english/telecommunication)。这些是参考链接，未下载其整部词典或复制例句。应用内单词详情提供对应 Morpheme Lexicon 词条链接，便于逐词核对。
+
+
+## 展示与加载
+
+词根／词缀只在词条已关联的词族中匹配，前缀限制在词首，后缀限制在词尾，支持 label 中用 `/` 列出的异形；历史拼写变化不强行高亮。例句匹配完整单词以及 `forms` 中已有的词形，保留标点和大小写，避免把 `act` 错误高亮到 `action` 中。
+
+词库仍是离线随包内容。列表按 30 条递增提供给视图，单词、词根、句子列表用 FlatList 虚拟化；词族树按 30 个独立词条展开，兼有多词性的词会显示在对应分枝。筛选或搜索改变时恢复首批。此处是本地展示分页，不是联网下载词典。

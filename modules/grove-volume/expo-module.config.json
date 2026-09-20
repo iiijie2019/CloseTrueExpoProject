@@ -1,0 +1,5 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": { "modules": ["GroveVolumeModule"] },
+  "android": { "modules": ["expo.modules.grovevolume.GroveVolumeModule"] }
+}

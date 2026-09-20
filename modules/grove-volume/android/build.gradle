@@ -1,0 +1,13 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+group = 'expo.modules.grovevolume'
+version = '1.0.0'
+android {
+  namespace 'expo.modules.grovevolume'
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
+}

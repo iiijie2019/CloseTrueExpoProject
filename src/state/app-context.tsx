@@ -4,6 +4,8 @@ import * as Speech from 'expo-speech';
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 
+import { getOutputVolume } from '@/platform/output-volume';
+import { shouldHintLowVolume } from '@/domain/volume-hint';
 import { readStored, writeStored } from '@/data/storage';
 import { wordById } from '@/data/lexicon';
 import { mergeData, parseStoredData } from '@/domain/backup';
@@ -38,6 +40,8 @@ export function AppProvider({ children }: React.PropsWithChildren) {
   const [attempt, setAttempt] = useState(0);
   const queue = useRef<Promise<unknown>>(Promise.resolve());
   const speechId = useRef(0);
+  const lastVolumeHint = useRef<number | null>(null);
+  const voicesCache = useRef<Speech.Voice[]>([]);
   const locales = useLocales();
   const pathname = usePathname();
   const language: Language = data.preferences.language === 'system' ? (locales[0]?.languageCode === 'zh' ? 'zh' : 'en') : data.preferences.language;
@@ -80,7 +84,7 @@ export function AppProvider({ children }: React.PropsWithChildren) {
         previous = old.records[id];
         return { ...old, records: { ...old.records, [id]: { wordId: id, spelling: word.spelling, status, updatedAt } } };
       });
-      notify(t(status === 'known' ? 'savedKnown' : status === 'focus' ? 'savedFocus' : 'savedUnknown'), () => {
+      notify(t(status === 'known' ? 'savedKnown' : 'savedUnknown'), () => {
         setToast(null);
         void commit(old => {
           // An old undo must not erase a more recent edit to the same word.
@@ -118,16 +122,27 @@ export function AppProvider({ children }: React.PropsWithChildren) {
     setSpeaking(text);
     try {
       await Speech.stop();
-      const voices = await Speech.getAvailableVoicesAsync();
+      const voices = voicesCache.current.length ? voicesCache.current : await Speech.getAvailableVoicesAsync();
+      voicesCache.current = voices;
       if (request !== speechId.current) return;
       const normalize = (s: string) => s.replace('_', '-').toLowerCase();
       const voice = voices.find(v => normalize(v.language) === normalize(current.current.preferences.accent)) ?? voices.find(v => v.language.startsWith('en'));
       if (voices.length && !voice) throw new Error('no-english-voice');
-      if (voice && normalize(voice.language) !== normalize(current.current.preferences.accent)) notify(t('voiceFallback'));
       const done = () => { if (speechId.current === request) setSpeaking(null); };
       Speech.speak(text, {
         language: voice?.language ?? current.current.preferences.accent, voice: voice?.identifier,
         rate: current.current.preferences.slowSpeech ? 0.7 : 0.9,
+        volume: 1,
+        onStart: () => {
+          void getOutputVolume().then(volume => {
+            if (request !== speechId.current) return;
+            const now = Date.now();
+            if (shouldHintLowVolume(volume, lastVolumeHint.current, now)) {
+              lastVolumeHint.current = now;
+              notify(t('lowVolume'));
+            }
+          });
+        },
         onDone: done, onStopped: done,
         onError: () => { if (speechId.current === request) { done(); notify(t('speechError')); } },
       });

@@ -1,6 +1,6 @@
 export type Language = 'zh' | 'en';
 export type Localized = Record<Language, string>;
-export type WordStatus = 'unknown' | 'focus' | 'known';
+export type WordStatus = 'unknown' | 'known';
 export type PartOfSpeech = 'noun' | 'verb' | 'adjective' | 'adverb';
 export type MorphemeKind = 'root' | 'prefix' | 'suffix';
 

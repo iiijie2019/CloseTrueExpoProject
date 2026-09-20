@@ -32,12 +32,12 @@ export function Glass({ children, style }: React.PropsWithChildren<{ style?: Sty
   if (Platform.OS === 'android') return <View style={[{ backgroundColor: 'rgba(252,254,249,0.96)' }, style]}>{children}</View>;
   return <BlurView tint="light" intensity={70} style={[{ backgroundColor: 'rgba(252,254,249,0.78)' }, style]}>{children}</BlurView>;
 }
-export function Page({ children, tabs = false, narrow = false }: React.PropsWithChildren<{ tabs?: boolean; narrow?: boolean }>) {
+export function Page({ children, tabs = false, narrow = false, onEndReached }: React.PropsWithChildren<{ tabs?: boolean; narrow?: boolean; onEndReached?: () => void }>) {
   const insets = useSafeAreaInsets();
   return <View style={{ flex: 1, backgroundColor: c.background }}>
     <LinearGradient colors={['#EDF4E9', '#F8FAF6', '#FBF9F4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0.8 }} style={StyleSheet.absoluteFill}/>
-    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: Math.max(insets.top, 18), paddingBottom: tabs ? 124 + insets.bottom : 36 + insets.bottom, flexGrow: 1 }}>
-      <View style={{ width: '100%', maxWidth: narrow ? 780 : 1040, alignSelf: 'center', paddingHorizontal: 24 }}>{children}</View>
+    <ScrollView onScroll={onEndReached ? ({ nativeEvent: { layoutMeasurement, contentOffset, contentSize } }) => { if (contentOffset.y > 0 && layoutMeasurement.height + contentOffset.y >= contentSize.height - 240) onEndReached(); } : undefined} scrollEventThrottle={100} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: Math.max(insets.top, 18), paddingBottom: tabs ? 124 + insets.bottom : 36 + insets.bottom, flexGrow: 1 }}>
+      <View style={{ width: '100%', maxWidth: narrow ? 780 : 1040, alignSelf: 'center', paddingHorizontal: 16 }}>{children}</View>
     </ScrollView>
   </View>;
 }
@@ -81,7 +81,7 @@ export function ToastHost() {
   </Animated.View>;
 }
 export const ui = StyleSheet.create({
-  card: { borderRadius: 24, padding: 23, backgroundColor: 'rgba(255,255,255,0.83)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.95)', ...softShadow },
+  card: { borderRadius: 24, paddingHorizontal: 24, paddingVertical: 12, backgroundColor: 'rgba(255,255,255,0.83)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.95)', ...softShadow },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   eyebrow: { fontSize: 10, fontWeight: '700', letterSpacing: 2, color: c.muted },

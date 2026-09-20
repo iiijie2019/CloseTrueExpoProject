@@ -58,7 +58,7 @@ function Lesson({ lesson }: { lesson: SentenceLesson }) {
         <View style={{ alignSelf: 'flex-start', backgroundColor: c[role.color], paddingHorizontal: 12, paddingVertical: 5, borderRadius: 9, marginVertical: 15 }}><T style={{ fontSize: 12 }}>{local(role.label)} · {local(role.question)}</T></View>
         <T style={{ fontSize: 14, lineHeight: 25 }}>{local(part.explanation)}</T>
       </Reveal>
-      <View style={{ backgroundColor: '#EDF3E6', padding: 20, borderRadius: 20, gap: 9 }}><View style={ui.row}><Icon name="spark" size={17}/><T style={{ fontSize: 13, fontWeight: '600' }}>{label('记住这个小规律', 'A pattern to remember')}</T></View><T style={{ fontSize: 13, color: c.muted, lineHeight: 23 }}>{local(lesson.tip)}</T></View>
+      <View style={{ backgroundColor: '#EDF3E6', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, gap: 9 }}><View style={ui.row}><Icon name="spark" size={17}/><T style={{ fontSize: 13, fontWeight: '600' }}>{label('记住这个小规律', 'A pattern to remember')}</T></View><T style={{ fontSize: 13, color: c.muted, lineHeight: 23 }}>{local(lesson.tip)}</T></View>
       <View style={{ marginTop: 22 }}><Button onPress={() => changeMode('practice')} icon="arrow">{label('试着排一排', 'Try arranging the sentence')}</Button></View>
     </Reveal> : <Reveal key="practice" style={{ marginTop: 24 }}>
       <View style={[ui.card, { backgroundColor: '#F0EDF7' }]}><T style={{ fontWeight: '600', fontSize: 17 }}>{lesson.translation}</T><T style={{ marginTop: 9, color: c.muted, fontSize: 13 }}>{label('按顺序点选下方词块。点已选词块可以移回，不用输入标点。', 'Tap the phrases in order. Tap a chosen phrase to return it. Punctuation is added for you.')}</T></View>
@@ -77,8 +77,8 @@ function Lesson({ lesson }: { lesson: SentenceLesson }) {
 }
 
 const s = StyleSheet.create({
-  chunk: { paddingHorizontal: 15, paddingVertical: 11, borderRadius: 16, gap: 3, borderWidth: 1.5 },
-  answer: { minHeight: 116, flexDirection: 'row', flexWrap: 'wrap', alignContent: 'flex-start', gap: 8, padding: 14, borderRadius: 20, borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#C8D6BF', backgroundColor: '#FFFFFF90' },
-  piece: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 11, backgroundColor: '#fff', borderRadius: 14, borderWidth: 1, borderColor: '#E2E8DE' },
+  chunk: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 16, gap: 3, borderWidth: 1.5 },
+  answer: { minHeight: 116, flexDirection: 'row', flexWrap: 'wrap', alignContent: 'flex-start', gap: 8, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#C8D6BF', backgroundColor: '#FFFFFF90' },
+  piece: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#fff', borderRadius: 14, borderWidth: 1, borderColor: '#E2E8DE' },
   pieceText: { fontFamily: serif, fontSize: 20, lineHeight: 25 },
 });

@@ -5,34 +5,34 @@ import { emptyData, type UserData } from '../src/domain/models';
 import { familyWords, morphemes, searchWords, wordById, words } from '../src/data/lexicon';
 import { translate } from '../src/i18n/messages';
 
-const sample = (status: 'known' | 'focus' | 'unknown'): UserData => ({
+const sample = (status: 'known' | 'unknown'): UserData => ({
   ...emptyData(), records: { action: { wordId: 'action', spelling: 'action', status, updatedAt: '2026-09-20T00:00:00.000Z' } }, recent: ['action'],
 });
 
 test('portable backups round trip records and preferences without browsing history', () => {
-  const data = sample('focus'); data.preferences.language = 'en';
+  const data = sample('unknown'); data.preferences.language = 'en';
   const decoded = decodeBackup(encodeBackup(data)).data;
   assert.deepEqual(decoded.records, data.records);
   assert.deepEqual(decoded.preferences, data.preferences);
   assert.deepEqual(decoded.recent, []);
 });
 test('merge conflicts require a deterministic choice and are idempotent', () => {
-  const local = sample('known'), incoming = sample('focus');
+  const local = sample('known'), incoming = sample('unknown');
   assert.equal(mergeData(local, incoming, false).records.action.status, 'known');
   const imported = mergeData(local, incoming, true);
-  assert.equal(imported.records.action.status, 'focus');
+  assert.equal(imported.records.action.status, 'unknown');
   assert.deepEqual(mergeData(imported, incoming, true), imported);
   assert.equal(local.records.action.status, 'known');
 });
 test('unknown dictionary records survive migration, preview and another export', () => {
-  const incoming = sample('focus');
+  const incoming = sample('unknown');
   incoming.records.futureword = { wordId: 'futureword', spelling: 'futureword', status: 'known', updatedAt: '2026-09-20T00:00:00.000Z' };
   assert.deepEqual(previewImport(sample('known'), incoming, new Set(wordById.keys())), { added: 1, conflicts: 1, unmatched: 1 });
   const result = decodeBackup(encodeBackup(mergeData(emptyData(), incoming, false)));
   assert.equal(result.data.records.futureword.status, 'known');
 });
 test('corrupt and unsupported backups are rejected rather than partially restored', () => {
-  for (const raw of ['{', '{}', JSON.stringify({ format: 'word-grove-backup', schemaVersion: 99, data: sample('focus') })]) assert.throws(() => decodeBackup(raw));
+  for (const raw of ['{', '{}', JSON.stringify({ format: 'word-grove-backup', schemaVersion: 99, data: sample('unknown') })]) assert.throws(() => decodeBackup(raw));
   assert.throws(() => validateData({ ...sample('known'), records: { action: { ...sample('known').records.action, status: 'mastered' } } }));
   assert.throws(() => validateData({ ...sample('known'), records: { action: { ...sample('known').records.action, wordId: 'active' } } }));
   assert.throws(() => validateData({ ...sample('known'), records: { action: { ...sample('known').records.action, updatedAt: 'not-a-date' } } }));
@@ -66,9 +66,23 @@ test('starter collection has stable unique keys, bilingual content and valid fam
   assert.ok(!familyWords('patho').some(word => word.id === 'path'));
 });
 test('status labels and parameterized messages support both UI languages', () => {
-  assert.equal(translate('zh', 'known'), '已知');
-  assert.equal(translate('en', 'known'), 'Known');
+  assert.equal(translate('zh', 'known'), '已掌握');
+  assert.equal(translate('en', 'known'), 'Mastered');
   assert.equal(translate('en', 'wordCountShort', { count: 12 }), '12 words');
   assert.equal(translate('en', 'wordCountShort', { count: 1 }), '1 word');
   assert.equal(translate('zh', 'wordCountShort', { count: 12 }), '12 个单词');
+});
+
+
+test('legacy following marks migrate to not mastered in storage and portable backups', () => {
+  const legacy = sample('known');
+  const raw = JSON.parse(JSON.stringify(legacy));
+  raw.records.action.status = 'focus';
+  assert.equal(validateData(raw).records.action.status, 'unknown');
+  assert.equal(parseStoredData(JSON.stringify(raw)).records.action.status, 'unknown');
+  const envelope = JSON.parse(encodeBackup(legacy));
+  envelope.data = raw;
+  const restored = decodeBackup(JSON.stringify(envelope)).data;
+  assert.equal(restored.records.action.status, 'unknown');
+  assert.ok(!encodeBackup(restored).includes('"focus"'));
 });

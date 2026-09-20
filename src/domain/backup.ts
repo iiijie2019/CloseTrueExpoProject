@@ -16,7 +16,7 @@ export function validateData(value: unknown): UserData {
       typeof record.spelling !== 'string' || !record.spelling.length || record.spelling.length > 100 ||
       !['unknown', 'focus', 'known'].includes(String(record.status)) ||
       typeof record.updatedAt !== 'string' || !Number.isFinite(Date.parse(record.updatedAt))) throw new Error('invalid-backup');
-    records[key] = { wordId: key, spelling: record.spelling, status: record.status as LearningRecord['status'], updatedAt: record.updatedAt };
+    records[key] = { wordId: key, spelling: record.spelling, status: record.status === 'known' ? 'known' : 'unknown', updatedAt: record.updatedAt };
   }
   if (value.recent.length > 100 || value.recent.some(id => typeof id !== 'string' || !/^[a-z][a-z0-9'-]{0,99}$/.test(id))) throw new Error('invalid-backup');
   return { version: 1, records, preferences: {
