@@ -1,10 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/grove/icon';
 import { Button, Chip, Empty, Page, PageHeader, Reveal, SectionLabel, T, Tap, Title, ui } from '@/components/grove/ui';
 import { AudioButton } from '@/components/grove/word-row';
 import { formatSentence, matchSentenceOrder, sentenceById, sentenceRoles, sentences, shuffledChunks, type SentenceLesson } from '@/data/sentences';
+import { words } from '@/data/lexicon';
+import { sentenceSegments } from '@/domain/word-display';
 import { useApp } from '@/state/app-context';
 import { palette as c, serif } from '@/theme/palette';
 
@@ -29,6 +31,7 @@ function Lesson({ lesson }: { lesson: SentenceLesson }) {
   const [showHint, setShowHint] = useState(false);
   const order = lesson.orders[orderIndex];
   const sentence = formatSentence(lesson, order.ids, order.commaAfter);
+  const vocabulary = useMemo(() => words.filter(word => sentenceSegments(sentence, word).some(segment => segment.highlighted)), [sentence]);
   const part = lesson.chunks.find(chunk => chunk.id === selected)!;
   const role = sentenceRoles[part.role];
   const match = checked ? matchSentenceOrder(lesson, answer) : undefined;
@@ -72,6 +75,12 @@ function Lesson({ lesson }: { lesson: SentenceLesson }) {
       {showHint && <Reveal style={[ui.card, { marginTop: 16 }]}><T style={{ fontSize: 13 }}>{lesson.orders[0].ids.map(id => local(sentenceRoles[lesson.chunks.find(chunk => chunk.id === id)!.role].label)).join(' → ')}</T></Reveal>}
       {checked && <Reveal style={[ui.card, { marginTop: 19, backgroundColor: match ? c.mint : c.peach }]}><View accessibilityLiveRegion="polite"><T style={{ fontWeight: '600', marginBottom: 9 }}>{match ? label('这样表达很自然！', 'That reads naturally!') : label('试试本课的目标顺序', 'Try one of this lesson’s patterns')}</T><T style={{ fontSize: 13, lineHeight: 24 }}>{match ? local(match.note) : label('当前排列没有匹配本课列出的示例。这并不代表所有其他排列都不合语法；可以看看提示，再回到拆解页比较。', 'This order does not match the examples in this lesson. Other orders can sometimes be grammatical. Use a hint or compare the patterns in Explore.')}</T></View>{match && <View style={[ui.row, { marginTop: 14 }]}><T style={{ flex: 1, fontFamily: serif, fontSize: 22, lineHeight: 31 }}>{formatSentence(lesson, answer, match.commaAfter)}</T><AudioButton small text={formatSentence(lesson, answer, match.commaAfter)}/></View>}</Reveal>}
     </Reveal>}
+    {vocabulary.length > 0 && <View style={{ marginTop: 30 }}>
+      <SectionLabel title={label('句子里的单词', 'Words in this sentence')} subtitle={label('点开复习读音、含义和变化形式。', 'Revisit their sounds, meanings and forms.')}/>
+      <View style={ui.chips}>{vocabulary.map(word => <Tap key={word.id} onPress={() => router.push({ pathname: '/word/[id]', params: { id: word.id } })} style={{ backgroundColor: '#FFFFFFCC', borderWidth: 1, borderColor: c.line, borderRadius: 13, paddingHorizontal: 13, paddingVertical: 9 }}>
+        <T style={{ fontFamily: serif, fontSize: 20 }}>{word.spelling}</T><T numberOfLines={1} style={{ fontSize: 11, color: c.muted, maxWidth: 220 }}>{local(word.meaning)}</T>
+      </Tap>)}</View>
+    </View>}
     {next && <Tap onPress={() => router.replace({ pathname: '/sentence/[id]', params: { id: next.id } })} style={{ paddingVertical: 23, marginTop: 10 }}><View style={[ui.row, { justifyContent: 'space-between' }]}><View style={{ flex: 1 }}><T style={ui.muted}>{label('下一个小练习', 'Up next')}</T><T style={{ fontWeight: '600', marginTop: 4 }}>{local(next.title)}</T></View><Icon name="arrow" size={18}/></View></Tap>}
   </Page>;
 }

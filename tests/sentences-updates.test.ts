@@ -8,7 +8,7 @@ import { emptyData } from '../src/domain/models';
 import { prepareUpdate, restartWithSavedData } from '../src/domain/update-flow';
 
 test('expanded collection keeps stable IDs, populated families and new inflection searches', () => {
-  assert.ok(words.length >= 200);
+  assert.ok(words.length >= 360);
   assert.equal(new Set(morphemes.map(root => root.id)).size, morphemes.length);
   for (const id of ['action', 'active', 'activity', 'empathy']) assert.equal(wordById.get(id)?.spelling, id);
   assert.ok(searchWords('photographed', 'verb').some(word => word.id === 'photograph'));
@@ -19,6 +19,7 @@ test('expanded collection keeps stable IDs, populated families and new inflectio
   assert.equal(decodeBackup(JSON.stringify(envelope)).data.records.action.status, 'known');
 });
 test('every lesson order contains each phrase exactly once and has bilingual explanations', () => {
+  assert.ok(sentences.length >= 30);
   assert.equal(new Set(sentences.map(lesson => lesson.id)).size, sentences.length);
   for (const lesson of sentences) {
     const ids = lesson.chunks.map(chunk => chunk.id).sort();
@@ -31,6 +32,23 @@ test('every lesson order contains each phrase exactly once and has bilingual exp
       assert.equal(matchSentenceOrder(lesson, order.ids), order);
     }
   }
+});
+test('polite requests and fronted conditions keep their own punctuation in lists and practice', () => {
+  assert.equal(formatSentence(sentenceById.get('coffee-request')!), 'Could I have a cup of coffee, please?');
+  assert.equal(formatSentence(sentenceById.get('repeat-slowly')!), 'Could you repeat that slowly, please?');
+  const conditional = sentenceById.get('if-it-rains')!;
+  assert.equal(formatSentence(conditional), 'If it rains, we will stay at home.');
+  assert.equal(formatSentence(conditional, ['s', 'v', 'p', 'cond']), 'We will stay at home if it rains.');
+  const reason = sentenceById.get('because-rain')!;
+  assert.equal(formatSentence(reason, ['r', 's', 'v', 'p']), 'Because it was raining, we stayed at home.');
+});
+test('everyday irregular forms remain searchable and point to their base entries', () => {
+  for (const [form, id] of [['brought', 'bring'], ['written', 'write'], ['chosen', 'choose'], ['drank', 'drink'], ['went', 'go']]) {
+    assert.ok(searchWords(form, 'verb').some(word => word.id === id), `${form} should find ${id}`);
+  }
+  assert.ok(searchWords('行李', 'noun').some(word => word.id === 'luggage'));
+  assert.equal(wordById.get('luggage')!.forms.length, 0);
+  assert.equal(wordById.get('homework')!.forms.length, 0);
 });
 test('practice accepts fronted time, formats commas and rejects incomplete or repeated chunks', () => {
   const lesson = sentenceById.get('evening-reading')!;

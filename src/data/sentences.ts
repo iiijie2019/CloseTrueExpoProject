@@ -1,7 +1,8 @@
 import type { Localized } from '../domain/models';
+import { extraSentences } from './sentences-extra';
 
-export type SentenceRole = 'subject' | 'verb' | 'object' | 'time' | 'place' | 'source' | 'destination' | 'manner' | 'frequency' | 'auxiliary' | 'question' | 'complement';
-export type SentenceTopic = 'basics' | 'time' | 'place' | 'questions';
+export type SentenceRole = 'subject' | 'verb' | 'object' | 'time' | 'place' | 'source' | 'destination' | 'manner' | 'frequency' | 'auxiliary' | 'question' | 'complement' | 'reason' | 'condition' | 'recipient' | 'politeness';
+export type SentenceTopic = 'basics' | 'time' | 'place' | 'questions' | 'daily' | 'travel' | 'work';
 export interface SentenceChunk { id: string; text: string; meaning: Localized; role: SentenceRole; explanation: Localized }
 export interface SentenceOrder { ids: string[]; note: Localized; commaAfter?: string }
 export interface SentenceLesson {
@@ -23,18 +24,23 @@ export const sentenceRoles: Record<SentenceRole, { label: Localized; question: L
   destination: { label: l('目的地', 'Destination'), question: l('到哪里去？', 'Where to?'), color: 'blue' },
   manner: { label: l('方式', 'Manner'), question: l('以什么方式？', 'How?'), color: 'lavender' },
   frequency: { label: l('频率', 'Frequency'), question: l('多常发生？', 'How often?'), color: 'lavender' },
-  auxiliary: { label: l('助动词', 'Auxiliary'), question: l('怎样组成疑问句？', 'What helps form the question?'), color: 'peach' },
+  auxiliary: { label: l('助动词', 'Auxiliary'), question: l('怎样表达时态或语气？', 'What helps express tense or mood?'), color: 'peach' },
   question: { label: l('疑问词', 'Question word'), question: l('在问哪类信息？', 'What information is missing?'), color: 'lavender' },
   complement: { label: l('表语', 'Complement'), question: l('主语是什么／怎么样？', 'What is the subject like?'), color: 'blue' },
+  reason: { label: l('原因', 'Reason'), question: l('为什么？', 'Why?'), color: 'lavender' },
+  condition: { label: l('条件', 'Condition'), question: l('在什么条件下？', 'Under what condition?'), color: 'lavender' },
+  recipient: { label: l('接收者', 'Recipient'), question: l('给谁？', 'To whom?'), color: 'blue' },
+  politeness: { label: l('礼貌表达', 'Politeness'), question: l('如何说得更礼貌？', 'How can we be polite?'), color: 'mint' },
 };
 
 export const sentenceTopics: Record<SentenceTopic, Localized> = {
   basics: l('句子骨架', 'Sentence basics'), time: l('时间与时态', 'Time & tense'), place: l('地点与来源', 'Place & source'), questions: l('提问方式', 'Questions'),
+  daily: l('日常生活', 'Everyday life'), travel: l('出行交流', 'Getting around'), work: l('学习与工作', 'Study & work'),
 };
 
 // Original teaching examples. Roles mix syntax (subject/object) and meaning (time/source)
 // for beginner-friendly phrase analysis; they are not part-of-speech classifications.
-export const sentences: SentenceLesson[] = [
+const starterSentences: SentenceLesson[] = [
   {
     id: 'evening-reading', title: l('先说谁，再说做什么', 'Who does what?'), topic: 'basics', translation: '我每天晚上读书。',
     summary: l('主语 + 动词 + 宾语，再补充时间。', 'Start with subject + verb + object, then add a time.'),
@@ -184,9 +190,10 @@ export const sentences: SentenceLesson[] = [
   },
 ];
 
+export const sentences = [...starterSentences, ...extraSentences];
 export const sentenceById = new Map(sentences.map(sentence => [sentence.id, sentence]));
 
-export function formatSentence(lesson: SentenceLesson, orderedIds: readonly string[] = lesson.orders[0].ids, commaAfter?: string): string {
+export function formatSentence(lesson: SentenceLesson, orderedIds: readonly string[] = lesson.orders[0].ids, commaAfter: string | undefined = matchSentenceOrder(lesson, orderedIds)?.commaAfter): string {
   const words = orderedIds.map(id => {
     const text = lesson.chunks.find(part => part.id === id)?.text ?? '';
     return id === commaAfter ? `${text},` : text;

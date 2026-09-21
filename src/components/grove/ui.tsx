@@ -14,7 +14,7 @@ import { Icon, type IconName } from './icon';
 export function T({ style, ...props }: TextProps) { return <Text {...props} style={[{ color: c.ink, fontSize: 15, lineHeight: 23 }, style]} />; }
 export function Title({ children, small = false }: React.PropsWithChildren<{ small?: boolean }>) {
   const { language } = useApp();
-  return <T accessibilityRole="header" style={{ fontSize: small ? 26 : language === 'zh' ? 34 : 43, lineHeight: small ? 36 : language === 'zh' ? 46 : 51, fontFamily: language === 'en' ? serif : undefined, fontWeight: language === 'zh' ? '600' : '400', letterSpacing: -0.7 }}>{children}</T>;
+  return <T accessibilityRole="header" style={{ fontSize: small ? 26 : language === 'zh' ? 32 : 39, lineHeight: small ? 36 : language === 'zh' ? 43 : 47, fontFamily: language === 'en' ? serif : undefined, fontWeight: language === 'zh' ? '600' : '400', letterSpacing: -0.7 }}>{children}</T>;
 }
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 export function Tap({ children, style, disabled, onPressIn, onPressOut, ...props }: Omit<PressableProps, 'style' | 'children'> & { style?: StyleProp<ViewStyle>; children: React.ReactNode }) {
@@ -37,7 +37,7 @@ export function Page({ children, tabs = false, narrow = false, onEndReached }: R
   return <View style={{ flex: 1, backgroundColor: c.background }}>
     <LinearGradient colors={['#EDF4E9', '#F8FAF6', '#FBF9F4']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0.8 }} style={StyleSheet.absoluteFill}/>
     <ScrollView onScroll={onEndReached ? ({ nativeEvent: { layoutMeasurement, contentOffset, contentSize } }) => { if (contentOffset.y > 0 && layoutMeasurement.height + contentOffset.y >= contentSize.height - 240) onEndReached(); } : undefined} scrollEventThrottle={100} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: Math.max(insets.top, 18), paddingBottom: tabs ? 124 + insets.bottom : 36 + insets.bottom, flexGrow: 1 }}>
-      <View style={{ width: '100%', maxWidth: narrow ? 780 : 1040, alignSelf: 'center', paddingHorizontal: 16 }}>{children}</View>
+      <View style={{ width: '100%', maxWidth: narrow ? 780 : 1040, alignSelf: 'center', paddingHorizontal: 20 }}>{children}</View>
     </ScrollView>
   </View>;
 }
@@ -81,14 +81,14 @@ export function ToastHost() {
   </Animated.View>;
 }
 export const ui = StyleSheet.create({
-  card: { borderRadius: 24, paddingHorizontal: 24, paddingVertical: 12, backgroundColor: 'rgba(255,255,255,0.83)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.95)', ...softShadow },
+  card: { borderRadius: 22, paddingHorizontal: 20, paddingVertical: 18, backgroundColor: 'rgba(255,255,255,0.88)', borderWidth: 1, borderColor: '#E9EEE5', ...softShadow },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   eyebrow: { fontSize: 10, fontWeight: '700', letterSpacing: 2, color: c.muted },
   muted: { color: c.muted, fontSize: 13 },
 });
 const s = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 27, minHeight: 52 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 19, minHeight: 48 },
   iconButton: { width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(255,255,255,0.7)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#FFFFFF' },
   chip: { minHeight: 42, paddingHorizontal: 15, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 14, backgroundColor: '#F7F8F3', borderWidth: 1, borderColor: '#ECF0E7' },
   search: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 17, backgroundColor: '#fff', borderRadius: 18, borderWidth: 1, borderColor: '#E7ECE2', ...softShadow },

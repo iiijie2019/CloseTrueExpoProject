@@ -1,5 +1,6 @@
 import { everydayWords } from './lexicon-everyday';
 import type { Localized, Morpheme, PartOfSpeech, Word } from '@/domain/models';
+import { scenarioWords } from './lexicon-scenarios';
 import { extraMorphemes, extraWords } from './lexicon-extra';
 
 const bi = (zh: string, en: string): Localized => ({ zh, en });
@@ -85,7 +86,7 @@ const additionalFamilies: Record<string, string[]> = {
   telephone: ['tele'], microphone: ['micro'], biography: ['graph'],
   actively: ['ly'], portable: ['able'],
 };
-export const words = [...starterWords.map(word => ({ ...word, morphemes: [...word.morphemes, ...(additionalFamilies[word.id] ?? [])] })), ...extraWords, ...everydayWords];
+export const words = [...starterWords.map(word => ({ ...word, morphemes: [...word.morphemes, ...(additionalFamilies[word.id] ?? [])] })), ...extraWords, ...everydayWords, ...scenarioWords];
 export const wordById = new Map(words.map(word => [word.id, word]));
 export const morphemeById = new Map(morphemes.map(root => [root.id, root]));
 export const familyWords = (id: string) => words.filter(word => word.morphemes.includes(id));

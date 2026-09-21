@@ -1,4 +1,5 @@
 import type { Localized, Word } from '@/domain/models';
+import { scenarioGroups } from './lexicon-scenarios';
 
 export const wordTopics = {
   time: { zh: '时间类名词', en: 'Time nouns' },
@@ -7,6 +8,8 @@ export const wordTopics = {
   everyday: { zh: '日常常见物品', en: 'Everyday objects' },
   people: { zh: '人物与关系', en: 'People & relationships' },
   nature: { zh: '自然与天气', en: 'Nature & weather' },
+  travel: { zh: '交通与旅行', en: 'Travel & transport' },
+  work: { zh: '学习与工作', en: 'Study & work' },
 } satisfies Record<string, Localized>;
 export type WordTopic = keyof typeof wordTopics;
 
@@ -17,5 +20,10 @@ const related: Record<WordTopic, readonly string[]> = {
   everyday: ['book', 'cup', 'key', 'bag', 'chair', 'table', 'pen', 'bottle', 'telephone', 'microphone', 'dictionary', 'projector', 'telescope', 'television', 'microscope', 'microchip', 'equipment', 'photo'],
   people: ['family', 'friend', 'teacher', 'student', 'parent', 'child', 'neighbor', 'sister', 'visitor', 'audience', 'spectator', 'biologist', 'photographer', 'geologist'],
   nature: ['sun', 'moon', 'rain', 'wind', 'tree', 'river', 'flower', 'snow', 'microorganism'],
+  travel: [],
+  work: [],
 };
-export const matchesWordTopic = (word: Word, topic: WordTopic | 'all') => topic === 'all' || related[topic].includes(word.id);
+const topicIds = Object.fromEntries((Object.keys(wordTopics) as WordTopic[]).map(topic => [topic, new Set([
+  ...related[topic], ...(topic in scenarioGroups ? scenarioGroups[topic as keyof typeof scenarioGroups].map(word => word.id) : []),
+])])) as Record<WordTopic, Set<string>>;
+export const matchesWordTopic = (word: Word, topic: WordTopic | 'all') => topic === 'all' || topicIds[topic].has(word.id);

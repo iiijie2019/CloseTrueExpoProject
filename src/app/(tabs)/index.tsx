@@ -1,79 +1,83 @@
 import { useState } from 'react';
-import { BrandLogo } from '@/components/grove/brand-logo';
-import { nextFeaturedWord } from '@/domain/word-display';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { BrandLogo } from '@/components/grove/brand-logo';
 import { GroveIllustration, WordIllustration } from '@/components/grove/illustrations';
-import { Icon } from '@/components/grove/icon';
+import { HighlightedSentence } from '@/components/grove/highlighted-word';
+import { Icon, type IconName } from '@/components/grove/icon';
 import { Page, Reveal, SectionLabel, Tap, T, Title, ui } from '@/components/grove/ui';
 import { AudioButton, StatusBadge, WordRow, posAbbreviation } from '@/components/grove/word-row';
 import { morphemes, wordById, words } from '@/data/lexicon';
+import { sentences } from '@/data/sentences';
+import type { WordTopic } from '@/data/word-topics';
+import { nextFeaturedWord } from '@/domain/word-display';
 import { useApp } from '@/state/app-context';
 import { palette as c, serif } from '@/theme/palette';
 
 export default function HomeScreen() {
   const { t, local, data, language, stop } = useApp();
   const wide = useWindowDimensions().width >= 680;
-  const records = Object.values(data.records).filter(record => wordById.has(record.wordId));
-  const known = records.filter(record => record.status === 'known').length;
-  const unknown = words.length - known;
+  const label = (zh: string, en: string) => language === 'zh' ? zh : en;
+  const known = Object.values(data.records).filter(record => wordById.has(record.wordId) && record.status === 'known').length;
   const recent = data.recent.map(id => wordById.get(id)).filter(word => !!word).slice(0, 3);
   const [featured, setFeatured] = useState(() => wordById.get('empathy')!);
-  const refreshFeatured = () => { stop(); setFeatured(old => nextFeaturedWord(words, old.id)!); };
+  const openFeatured = () => router.push({ pathname: '/word/[id]', params: { id: featured.id } });
+  const topics: { id: WordTopic; title: string; icon: IconName; color: string }[] = [
+    { id: 'everyday', title: label('身边物品', 'Everyday'), icon: 'home', color: c.mint },
+    { id: 'food', title: label('饮食时光', 'Food'), icon: 'spark', color: c.peach },
+    { id: 'travel', title: label('出门走走', 'Travel'), icon: 'globe', color: c.blue },
+    { id: 'work', title: label('学习工作', 'Work'), icon: 'book', color: c.lavender },
+  ];
   return <Page tabs>
-    <Reveal><View style={s.brandRow}><View style={ui.row}><BrandLogo size={43}/><View><T style={{ fontFamily: serif, fontSize: 21, fontWeight: '600', letterSpacing: -0.4 }}>Word Grove</T><T style={{ fontSize: 10, letterSpacing: 2.5, color: c.muted, lineHeight: 15 }}>{language === 'zh' ? '词 间 · 慢 慢 生 长' : 'GROW AT YOUR OWN PACE'}</T></View></View><View style={s.offline}><View style={s.dot}/><T style={{ fontSize: 10, color: c.green }}>{t('offline')}</T></View></View></Reveal>
-
-    <View style={[s.hero, !wide && { paddingTop: 32, paddingBottom: 28 }]}>
-      <Reveal delay={80} style={{ flex: 1, gap: 14 }}><T style={ui.eyebrow}>{t('learning')}</T><Title>{t('hello')}</Title><T style={{ color: c.muted, fontSize: 14, lineHeight: 24, maxWidth: 445 }}>{t('welcome')}</T></Reveal>
-      {wide && <Reveal delay={180}><GroveIllustration size={255}/></Reveal>}
+    <View style={s.brandRow}><View style={[ui.row, { gap: 10, flex: 1, minWidth: 0 }]}><BrandLogo size={40}/><View style={{ flex: 1, minWidth: 0 }}><T style={{ fontFamily: serif, fontSize: 21, fontWeight: '600' }}>Word Grove</T><T style={{ fontSize: 10, color: c.muted, letterSpacing: 0.6 }}>{label('词间 · 按自己的节奏生长', 'GROW AT YOUR OWN PACE')}</T></View></View><Tap onPress={() => router.push('/words')} accessibilityLabel={t('searchPlaceholder')} style={s.search}><Icon name="search" size={20}/></Tap></View>
+    <View style={[s.hero, wide && { paddingVertical: 18 }]}>
+      <Reveal style={{ flex: 1, gap: 8 }}><T style={[ui.eyebrow, { color: c.green }]}>{t('learning')}</T><Title>{t('hello')}</Title><T style={{ color: c.muted, fontSize: 13, lineHeight: 22, maxWidth: 430 }}>{t('welcome')}</T></Reveal>
+      {wide && <GroveIllustration size={190}/>}
     </View>
-
-    <View style={s.stats}>
-      <Reveal delay={130} style={{ flex: 1 }}><Tap onPress={() => router.push({ pathname: '/words', params: { status: 'known' } })} style={[s.stat, { backgroundColor: '#E7F1E2' }]}><View style={s.statTop}><View style={[s.statIcon, { backgroundColor: '#D5E6CF' }]}><Icon name="check" size={19}/></View><Icon name="arrow" size={16} color="#83A078"/></View><T style={s.statNumber}>{known.toLocaleString()}</T><T style={{ fontSize: 12, color: '#698062' }}>{t('knownWords')}</T></Tap></Reveal>
-      <Reveal delay={190} style={{ flex: 1 }}><Tap onPress={() => router.push({ pathname: '/words', params: { status: 'unknown' } })} style={[s.stat, { backgroundColor: '#F8ECDD' }]}><View style={s.statTop}><View style={[s.statIcon, { backgroundColor: '#F0DFC7' }]}><Icon name="book" size={18} color={c.orange}/></View><Icon name="arrow" size={16} color="#BC9C75"/></View><T style={[s.statNumber, { color: '#896846' }]}>{unknown.toLocaleString()}</T><T style={{ fontSize: 12, color: '#A08664' }}>{t('unknownWords')}</T></Tap></Reveal>
+    <View style={{ flexDirection: 'row', gap: 12 }}>
+      {(['known', 'unknown'] as const).map((status, index) => <Reveal key={status} delay={70 + index * 50} style={{ flex: 1 }}><Tap onPress={() => router.push({ pathname: '/words', params: { status } })} style={[s.stat, { backgroundColor: index === 0 ? '#E4EFE1' : '#F8EEDC' }]}>
+        <View style={[ui.row, { justifyContent: 'space-between', gap: 6 }]}><T style={{ fontSize: 12, color: index === 0 ? c.green : '#8A6B45' }}>{t(index === 0 ? 'knownWords' : 'unknownWords')}</T><Icon name={index === 0 ? 'check' : 'book'} size={16} color={index === 0 ? c.green : '#A38559'}/></View>
+        <View style={[ui.row, { justifyContent: 'space-between', marginTop: 8 }]}><T style={{ fontFamily: serif, fontSize: 36, lineHeight: 42, color: index === 0 ? c.green : '#86633F' }}>{(index === 0 ? known : words.length - known).toLocaleString()}</T><Icon name="arrow" size={16} color={index === 0 ? c.green : '#A38559'}/></View>
+      </Tap></Reveal>)}
     </View>
-
-    <Reveal delay={220} style={{ marginTop: 34 }}><SectionLabel title={t('explore')} subtitle={t('exploreSub')}/></Reveal>
-    {!wide ? <View style={{ flexDirection: 'row', gap: 12 }}>
-      <Reveal delay={250} style={{ flex: 1 }}><Tap onPress={() => router.push('/words')} style={[s.smallEntry, { backgroundColor: '#F9EDDE' }]}><View style={{ height: 84, marginLeft: -9 }}><WordIllustration/></View><T style={{ fontSize: 18, fontWeight: '600', lineHeight: 27 }}>{t('exploreWords')}</T><T style={{ fontSize: 11, color: '#927957', marginTop: 6 }}>{t('wordType')} · {t('learningStatus')}</T><View style={{ alignItems: 'flex-end', marginTop: 12 }}><Icon name="arrow" size={18} color="#A38257"/></View></Tap></Reveal>
-      <Reveal delay={310} style={{ flex: 1 }}><Tap onPress={() => router.push('/roots')} style={[s.smallEntry, { backgroundColor: '#E4EFDF' }]}><View style={{ height: 84, marginTop: 0 }}><GroveIllustration size={115}/></View><T style={{ fontSize: 18, fontWeight: '600', lineHeight: 27 }}>{t('rootEntry')}</T><T style={{ fontSize: 11, color: '#758969', marginTop: 6 }}>{morphemes.length} {t('rootsUnit')}</T><View style={{ alignItems: 'flex-end', marginTop: 12 }}><Icon name="arrow" size={18}/></View></Tap></Reveal>
-    </View> : <View style={{ flexDirection: 'row', gap: 16 }}>
-      <Reveal delay={260} style={{ flex: 1 }}><Tap onPress={() => router.push('/words')} style={{ flex: 1 }}><LinearGradient colors={['#FBF2E7', '#F9ECDA']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.exploreCard}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}><View style={{ flex: 1, gap: 9 }}><View style={[s.miniIcon, { backgroundColor: '#F0DEC5' }]}><Icon name="filter" size={18} color="#A37B50"/></View><T style={{ fontSize: 22, fontWeight: '600', letterSpacing: -0.5 }}>{t('wordFilter')}</T></View><WordIllustration/></View>
-        <T style={{ color: '#9A8368', fontSize: 13, lineHeight: 23 }}>{t('wordFilterSub')}</T><View style={s.cardFooter}><T style={{ color: '#956A43', fontSize: 13, fontWeight: '600' }}>{t('exploreWords')}</T><View style={s.arrowCircle}><Icon name="arrow" size={18} color="#A67F54"/></View></View>
-      </LinearGradient></Tap></Reveal>
-      <Reveal delay={320} style={{ flex: 1 }}><Tap onPress={() => router.push('/roots')} style={{ flex: 1 }}><LinearGradient colors={['#E8F1E7', '#DFEBDD']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.exploreCard}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 104 }}><View style={{ flex: 1, gap: 9 }}><View style={[s.miniIcon, { backgroundColor: '#D2E4CD' }]}><Icon name="tree" size={18}/></View><T style={{ fontSize: 22, fontWeight: '600', letterSpacing: -0.5 }}>{t('rootStudy')}</T></View><View style={{ width: 120, alignItems: 'center' }}><GroveIllustration size={140}/></View></View>
-        <T style={{ color: '#758D71', fontSize: 13, lineHeight: 23 }}>{t('rootStudySub')}</T><View style={s.cardFooter}><T style={{ color: c.green, fontSize: 13, fontWeight: '600' }}>{t('exploreRoots')}</T><View style={s.arrowCircle}><Icon name="arrow" size={18}/></View></View>
-      </LinearGradient></Tap></Reveal>
-    </View>}
-
-    <Reveal delay={350} style={{ marginTop: 16 }}><Tap onPress={() => router.push('/sentences')} style={[ui.card, { backgroundColor: '#EEEDF6', borderColor: '#FFFFFFA0', flexDirection: 'row', gap: 17, alignItems: 'center', paddingHorizontal: 22, paddingVertical: 11 }]}><View style={{ width: 45, height: 51, borderRadius: 15, backgroundColor: '#E0DBED', alignItems: 'center', justifyContent: 'center' }}><Icon name="book" color="#8A7B9F" size={23}/></View><View style={{ flex: 1 }}><T style={{ fontSize: wide ? 20 : 17, lineHeight: 27, fontWeight: '600', color: '#62576F' }}>{t('sentenceTitle')}</T><T style={{ fontSize: 12, lineHeight: 21, color: '#968AA1', marginTop: 5 }}>{t('sentenceSubtitle')}</T></View><Icon name="arrow" color="#91829F" size={18}/></Tap></Reveal>
-
-    <Reveal delay={360} style={{ marginTop: 26 }}><View style={[ui.card, { backgroundColor: '#FFFDF8', paddingHorizontal: wide ? 28 : 24, paddingVertical: wide ? 14 : 12 }]}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 17 }}><View style={ui.row}><Icon name="spark" size={15} color="#B49B6E"/><T style={[ui.eyebrow, { color: '#A99471', letterSpacing: 1.7 }]}>{t('handpicked')}</T></View><Tap onPress={refreshFeatured} accessibilityLabel={t('refreshWord')} style={[ui.row, { gap: 5, minHeight: 40, paddingHorizontal: 8 }]}><Icon name="refresh" size={15}/><T style={{ color: c.green, fontSize: 12 }}>{t('refreshWord')}</T></Tap></View>
-      <View style={[ui.row, { alignItems: 'flex-start' }]}><Tap onPress={() => router.push({ pathname: '/word/[id]', params: { id: featured.id } })} style={{ flex: 1 }}><T style={{ fontSize: featured.spelling.length > 12 ? 28 : 37, lineHeight: 46, fontFamily: serif, letterSpacing: -0.8 }}>{featured.spelling}</T><T style={{ color: '#A1A497', fontSize: 13, marginTop: 2 }}>/ {featured.ipa} /  ·  {featured.pos.map(pos => posAbbreviation[pos]).join(' / ')}</T></Tap><AudioButton text={featured.spelling}/></View>
-      <View style={[ui.row, { justifyContent: 'space-between', marginTop: 12 }]}><T style={{ fontSize: 15, flex: 1 }}>{local(featured.meaning)}</T><StatusBadge word={featured}/></View><T style={{ fontSize: 13, color: c.muted, marginTop: 5 }}>{local(featured.example)}</T>
-      <View style={{ height: 1, backgroundColor: '#EFEDE3', marginVertical: 20 }}/><View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}><View style={[ui.row, { flex: 1 }]}><T style={{ fontFamily: serif, fontStyle: 'italic', color: '#9A947D', fontSize: 16 }}>{featured.parts.join(' + ')}</T></View><Tap onPress={() => router.push({ pathname: '/word/[id]', params: { id: featured.id } })} style={ui.row}><T style={{ fontSize: 12, color: c.green }}>{t('discover')}</T><Icon name="arrow" size={16}/></Tap></View>
-    </View></Reveal>
-    {recent.length > 0 && <Reveal style={{ marginTop: 29 }}><SectionLabel title={t('recent')}/><View style={ui.card}>{recent.map((word, index) => <WordRow key={word.id} word={word} last={index === recent.length - 1}/>)}</View></Reveal>}
-    <View style={{ alignItems: 'center', marginTop: 34, gap: 6 }}><Icon name="leaf" color="#A6B59E" size={17}/><T style={{ fontSize: 11, color: '#9CA695' }}>{t('startHint')}</T><T style={{ fontSize: 10, color: '#ADB5A6', letterSpacing: 0.5 }}>{words.length} {t('wordsUnit')} · {morphemes.length} {t('rootsUnit')}</T></View>
+    <View style={{ marginTop: 26 }}><SectionLabel title={label('今天，想怎样学？', 'Where shall we begin?')}/></View>
+    <View style={{ flexDirection: 'row', gap: 12 }}>
+      <Reveal delay={140} style={{ flex: 1 }}><Tap onPress={() => router.push('/words')} style={[s.entry, { backgroundColor: '#FAEDDE' }]}>
+        <View style={{ height: 54, overflow: 'hidden' }}><View style={{ transform: [{ scale: 0.68 }], transformOrigin: 'left top', width: 145 }}><WordIllustration/></View></View>
+        <T style={s.entryTitle}>{t('exploreWords')}</T><T style={{ color: '#846B4F', fontSize: 12 }}>{t('wordCountShort', { count: words.length })}</T><View style={s.entryArrow}><Icon name="arrow" size={17} color="#98764D"/></View>
+      </Tap></Reveal>
+      <Reveal delay={190} style={{ flex: 1 }}><Tap onPress={() => router.push('/roots')} style={[s.entry, { backgroundColor: '#E3EDDF' }]}>
+        <View style={{ height: 54, justifyContent: 'center' }}><Icon name="tree" size={32} color="#65825A"/></View>
+        <T style={s.entryTitle}>{t('rootEntry')}</T><T style={{ color: '#5D7654', fontSize: 12 }}>{morphemes.length} {t('rootsUnit')}</T><View style={s.entryArrow}><Icon name="arrow" size={17}/></View>
+      </Tap></Reveal>
+    </View>
+    <Reveal delay={230} style={{ marginTop: 12 }}><Tap onPress={() => router.push('/sentences')} style={[s.sentence, { backgroundColor: '#EEEBF5' }]}>
+      <View style={s.sentenceIcon}><Icon name="book" size={23} color={c.purple}/></View><View style={{ flex: 1 }}><View style={[ui.row, { flexWrap: 'wrap', gap: 8 }]}><T style={{ fontWeight: '600', fontSize: 18 }}>{label('把单词连成句子', 'Words in company')}</T><T style={{ color: c.purple, fontSize: 11 }}>{label(`${sentences.length} 个案例`, `${sentences.length} lessons`)}</T></View><T style={{ color: c.purple, fontSize: 12, lineHeight: 21, marginTop: 4 }}>{label('点一点，拆解语序；排一排，学会表达。', 'Explore each phrase. Put the pieces together.')}</T></View><Icon name="arrow" size={17} color={c.purple}/>
+    </Tap></Reveal>
+    <View style={{ marginTop: 29 }}><SectionLabel title={label('从熟悉的生活开始', 'English around you')} subtitle={label('选一个场景，认识用得上的单词。', 'Useful words for the moments you know.')}/>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingBottom: 4 }}>{topics.map(topic => <Tap key={topic.id} onPress={() => router.push({ pathname: '/words', params: { topic: topic.id } })} style={[s.topic, { backgroundColor: topic.color }]}><Icon name={topic.icon} size={20}/><T style={{ fontSize: 12, marginTop: 9 }}>{topic.title}</T></Tap>)}</ScrollView>
+    </View>
+    <View style={{ marginTop: 27 }}><View style={[ui.row, { justifyContent: 'space-between', marginBottom: 12 }]}><T style={{ fontSize: 19, fontWeight: '600', flex: 1 }}>{t('handpicked')}</T><Tap onPress={() => { stop(); setFeatured(old => nextFeaturedWord(words, old.id)!); }} accessibilityLabel={t('refreshWord')} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6 }}><Icon name="refresh" size={15}/><T style={{ fontSize: 12, color: c.green }}>{t('refreshWord')}</T></Tap></View>
+      <Reveal key={featured.id} style={[ui.card, { backgroundColor: '#FFFEF9' }]}>
+        <View style={[ui.row, { alignItems: 'flex-start' }]}><Tap onPress={openFeatured} style={{ flex: 1, minWidth: 0 }}><T style={{ fontFamily: serif, fontSize: featured.spelling.length > 13 ? 27 : 34, lineHeight: 43 }}>{featured.spelling}</T><T style={{ color: c.muted, fontSize: 12 }}>/ {featured.ipa} / · {featured.pos.map(pos => posAbbreviation[pos]).join(' / ')}</T></Tap><AudioButton text={featured.spelling}/></View>
+        <View style={[ui.row, { marginTop: 12 }]}><T style={{ flex: 1, fontSize: 15 }}>{local(featured.meaning)}</T><StatusBadge word={featured}/></View>
+        <View style={{ borderTopWidth: 1, borderColor: c.line, paddingTop: 16, marginTop: 13 }}><HighlightedSentence word={featured} style={{ fontFamily: serif, fontSize: 19, lineHeight: 29 }}/><T style={{ fontSize: 12, lineHeight: 21, color: c.muted, marginTop: 7 }}>{featured.example.zh}</T></View>
+        <Tap onPress={openFeatured} style={{ flexDirection: 'row', gap: 9, alignItems: 'center', alignSelf: 'flex-start', marginTop: 14, minHeight: 36 }}><T style={{ fontSize: 12, color: c.green }}>{t('discover')}</T><Icon name="arrow" size={15}/></Tap>
+      </Reveal>
+    </View>
+    {!!recent.length && <View style={{ marginTop: 27 }}><SectionLabel title={t('recent')}/><View style={ui.card}>{recent.map((word, i) => <WordRow key={word.id} word={word} last={i === recent.length - 1}/>)}</View></View>}
+    <View style={{ alignItems: 'center', gap: 5, marginTop: 27 }}><Icon name="leaf" size={17} color={c.muted}/><T style={{ color: c.muted, fontSize: 11 }}>{t('startHint')}</T></View>
   </Page>;
 }
 const s = StyleSheet.create({
-  brandRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginTop: 4, gap: 10 },
-  offline: { flexDirection: 'row', gap: 6, alignItems: 'center', paddingVertical: 7, paddingHorizontal: 10, backgroundColor: '#E8F0E3', borderRadius: 20 },
-  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: '#7C9B68' },
-  hero: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingTop: 21, paddingBottom: 13 },
-  stats: { flexDirection: 'row', gap: 14 },
-  stat: { borderRadius: 22, paddingHorizontal: 20, paddingVertical: 10, borderWidth: 1, borderColor: '#FFFFFFA0' },
-  statTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  statIcon: { width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  statNumber: { fontFamily: serif, fontSize: 45, lineHeight: 55, color: '#416345', marginTop: 12 },
-  exploreCard: { flex: 1, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 25, borderWidth: 1, borderColor: '#FFFFFFB0', gap: 8, overflow: 'hidden' },
-  miniIcon: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  smallEntry: { borderRadius: 23, paddingHorizontal: 18, paddingVertical: 9, flex: 1, minHeight: 212, borderWidth: 1, borderColor: '#FFFFFFB0', overflow: 'hidden' },
-  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
-  arrowCircle: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#FFFFFF75', alignItems: 'center', justifyContent: 'center' },
+  brandRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 3 },
+  search: { width: 42, height: 42, borderRadius: 16, backgroundColor: '#FFFFFFC9', borderWidth: 1, borderColor: '#E4EBDE', justifyContent: 'center', alignItems: 'center' },
+  hero: { paddingTop: 27, paddingBottom: 23, flexDirection: 'row', alignItems: 'center' },
+  stat: { paddingHorizontal: 17, paddingVertical: 14, borderRadius: 20, borderWidth: 1, borderColor: '#FFFFFFB0' },
+  entry: { paddingHorizontal: 18, paddingTop: 13, paddingBottom: 20, minHeight: 150, borderRadius: 22, borderWidth: 1, borderColor: '#FFFFFFA0', overflow: 'hidden' },
+  entryTitle: { fontSize: 18, fontWeight: '600', marginTop: 2, marginBottom: 5 },
+  entryArrow: { position: 'absolute', bottom: 18, right: 17 },
+  sentence: { borderRadius: 22, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: '#FFFFFFB0' },
+  sentenceIcon: { width: 43, height: 48, borderRadius: 15, backgroundColor: '#E2DCED', justifyContent: 'center', alignItems: 'center' },
+  topic: { minWidth: 93, paddingHorizontal: 16, paddingVertical: 15, borderRadius: 18 },
 });

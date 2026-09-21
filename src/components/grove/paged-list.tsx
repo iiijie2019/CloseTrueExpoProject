@@ -15,8 +15,8 @@ export function PageProgress({ shown, total, loadMore }: { shown: number; total:
   </View>;
 }
 
-export function PagedList<T extends { id: string }>({ items, resetKey, header, renderItem, empty, columns = 1 }: {
-  items: T[]; resetKey: string; header: ReactElement; renderItem: ListRenderItem<T>; empty?: ReactElement; columns?: number;
+export function PagedList<T extends { id: string }>({ items, resetKey, header, renderItem, empty, columns = 1, narrow = false }: {
+  items: T[]; resetKey: string; header: ReactElement; renderItem: ListRenderItem<T>; empty?: ReactElement; columns?: number; narrow?: boolean;
 }) {
   const page = usePagedItems(items, resetKey);
   const list = useRef<FlatList<T>>(null);
@@ -26,7 +26,7 @@ export function PagedList<T extends { id: string }>({ items, resetKey, header, r
     ref={list} key={columns} data={page.items} numColumns={columns} keyExtractor={item => item.id}
     keyboardShouldPersistTaps="handled" initialNumToRender={10} maxToRenderPerBatch={10} windowSize={7}
     onEndReached={page.hasMore ? page.loadMore : undefined} onEndReachedThreshold={0.3}
-    contentContainerStyle={{ width: '100%', maxWidth: 1040, alignSelf: 'center', paddingHorizontal: 16, paddingTop: Math.max(insets.top, 18), paddingBottom: 35 + insets.bottom }}
+    contentContainerStyle={{ width: '100%', maxWidth: narrow ? 780 : 1040, alignSelf: 'center', paddingHorizontal: 20, paddingTop: Math.max(insets.top, 18), paddingBottom: 35 + insets.bottom }}
     columnWrapperStyle={columns > 1 ? { gap: 14 } : undefined}
     ListHeaderComponent={header} renderItem={renderItem} ListEmptyComponent={empty}
     ListFooterComponent={<PageProgress shown={page.items.length} total={items.length} loadMore={page.hasMore ? page.loadMore : undefined}/>}

@@ -5,7 +5,7 @@ import { HighlightedWord } from '@/components/grove/highlighted-word';
 import { PageProgress } from '@/components/grove/paged-list';
 import { usePagedItems } from '@/hooks/use-paged-items';
 import { Icon } from '@/components/grove/icon';
-import { Button, Chip, Empty, Page, PageHeader, Reveal, SectionLabel, Tap, T, ui } from '@/components/grove/ui';
+import { Button, Chip, Empty, Page, PageHeader, Reveal, SectionLabel, T, Tap, ui } from '@/components/grove/ui';
 import { StatusBadge, WordRow, posAbbreviation } from '@/components/grove/word-row';
 import { familyWords, morphemeById } from '@/data/lexicon';
 import type { PartOfSpeech, WordStatus } from '@/domain/models';
@@ -39,14 +39,14 @@ export default function RootScreen() {
     {visible.length === 0 ? <Empty message={t('noWords')} detail={t('noWordsSub')}/> : mode === 'list' ? <Reveal key="list" style={ui.card}>{page.items.map((word, i) => <WordRow word={word} morphemeId={root.id} key={word.id} last={i === page.items.length - 1}/>)}</Reveal> : <Reveal key="tree">
       <T style={[ui.muted, { marginBottom: 20 }]}>{t('treeHint')}</T>
       <View style={s.treeRoot}><Icon name="leaf" size={19} color="#FFF"/><T style={{ fontFamily: serif, color: '#FFF', fontSize: 24 }}>{root.label}</T></View>
-      <View style={{ marginLeft: 24 }}>{branches.map(pos => {
+      <View style={{ marginLeft: 12 }}>{branches.map(pos => {
         const open = !closed.includes(pos);
         const members = page.items.filter(word => word.pos.includes(pos));
         return <View key={pos} style={s.branch}>
           <View style={s.branchLine}/>
           <Tap accessibilityState={{ expanded: open }} onPress={() => toggle(pos)} style={s.branchHeading}><View style={ui.row}><View style={s.posBadge}><T style={{ color: c.green, fontFamily: serif, fontSize: 17 }}>{posAbbreviation[pos]}</T></View><T style={{ fontWeight: '600', fontSize: 14 }}>{t(pos)}</T><T style={{ fontSize: 11, color: c.muted }}>{members.length}</T></View><Icon name={open ? 'minus' : 'plus'} size={17}/></Tap>
-          {open && <Reveal style={{ marginLeft: 18, paddingLeft: 16, borderLeftWidth: 1, borderLeftColor: '#DDE5D5', marginTop: 3 }}>{members.map(word => <View key={word.id} style={s.leaf}>
-            <View style={{ position: 'absolute', left: -17, top: 33, width: 16, borderTopWidth: 1, borderColor: '#DDE5D5' }}/>
+          {open && <Reveal style={{ marginLeft: 8, paddingLeft: 12, borderLeftWidth: 1, borderLeftColor: '#DDE5D5', marginTop: 3 }}>{members.map(word => <View key={word.id} style={s.leaf}>
+            <View style={{ position: 'absolute', left: -13, top: 33, width: 12, borderTopWidth: 1, borderColor: '#DDE5D5' }}/>
             <View style={{ flex: 1, gap: 5 }}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}><Tap onPress={() => router.push({ pathname: '/word/[id]', params: { id: word.id } })}><HighlightedWord word={word} morphemeId={root.id} style={{ fontFamily: serif, fontSize: 23, lineHeight: 30 }}/></Tap><StatusBadge word={word}/></View><Tap onPress={() => router.push({ pathname: '/word/[id]', params: { id: word.id } })}><T style={{ color: c.muted, fontSize: 12 }} numberOfLines={2}>{local(word.meaning)}</T></Tap></View><Tap accessibilityLabel={word.spelling} onPress={() => router.push({ pathname: '/word/[id]', params: { id: word.id } })} style={{ paddingVertical: 12 }}><Icon name="chevron" size={15} color="#9AAB8F"/></Tap>
           </View>)}</Reveal>}
         </View>;
@@ -57,8 +57,8 @@ export default function RootScreen() {
 }
 const s = StyleSheet.create({
   treeRoot: { flexDirection: 'row', alignItems: 'center', gap: 12, alignSelf: 'flex-start', backgroundColor: '#658461', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 17 },
-  branch: { borderLeftWidth: 2, borderLeftColor: '#D3DECB', paddingLeft: 22, paddingTop: 21 },
-  branchLine: { position: 'absolute', top: 47, left: 0, width: 22, borderTopWidth: 2, borderTopColor: '#D3DECB' },
+  branch: { borderLeftWidth: 2, borderLeftColor: '#D3DECB', paddingLeft: 14, paddingTop: 21 },
+  branchLine: { position: 'absolute', top: 47, left: 0, width: 14, borderTopWidth: 2, borderTopColor: '#D3DECB' },
   branchHeading: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, backgroundColor: '#EDF3E8', borderRadius: 15, paddingHorizontal: 16, paddingVertical: 8 },
   posBadge: { width: 36, height: 31, borderRadius: 9, backgroundColor: '#DFEAD7', alignItems: 'center', justifyContent: 'center' },
   leaf: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 15, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#ECF0E5', paddingHorizontal: 16, paddingVertical: 8, marginTop: 11 },
