@@ -8,7 +8,7 @@ import { emptyData } from '../src/domain/models';
 import { prepareUpdate, restartWithSavedData } from '../src/domain/update-flow';
 
 test('expanded collection keeps stable IDs, populated families and new inflection searches', () => {
-  assert.ok(words.length >= 360);
+  assert.ok(words.length >= 600);
   assert.equal(new Set(morphemes.map(root => root.id)).size, morphemes.length);
   for (const id of ['action', 'active', 'activity', 'empathy']) assert.equal(wordById.get(id)?.spelling, id);
   assert.ok(searchWords('photographed', 'verb').some(word => word.id === 'photograph'));

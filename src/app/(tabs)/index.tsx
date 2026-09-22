@@ -1,18 +1,18 @@
-import { useState } from 'react';
-import { router } from 'expo-router';
-import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { BrandLogo } from '@/components/grove/brand-logo';
-import { GroveIllustration, WordIllustration } from '@/components/grove/illustrations';
 import { HighlightedSentence } from '@/components/grove/highlighted-word';
 import { Icon, type IconName } from '@/components/grove/icon';
-import { Page, Reveal, SectionLabel, Tap, T, Title, ui } from '@/components/grove/ui';
-import { AudioButton, StatusBadge, WordRow, posAbbreviation } from '@/components/grove/word-row';
+import { GroveIllustration, WordIllustration } from '@/components/grove/illustrations';
+import { Page, Reveal, SectionLabel, T, Tap, Title, ui } from '@/components/grove/ui';
+import { AudioButton, posAbbreviation, StatusBadge, WordRow } from '@/components/grove/word-row';
 import { morphemes, wordById, words } from '@/data/lexicon';
 import { sentences } from '@/data/sentences';
 import type { WordTopic } from '@/data/word-topics';
 import { nextFeaturedWord } from '@/domain/word-display';
 import { useApp } from '@/state/app-context';
 import { palette as c, serif } from '@/theme/palette';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 export default function HomeScreen() {
   const { t, local, data, language, stop } = useApp();

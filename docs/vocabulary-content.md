@@ -1,14 +1,15 @@
 # 词库与句子内容维护
 
-当前离线内容为 **360 个独立词条、32 组词根词缀、30 个句子练习**。词库由原来的 49 个词条扩充而来，采用本项目编写的简短教学释义和例句，没有批量复制参考站内容，也没有接入在线生成接口。
+当前离线内容为 **600 个独立词条、32 组词根词缀、30 个句子练习**。词库由原来的 49 个词条扩充而来，采用本项目编写的简短教学释义和例句，没有批量复制参考站内容，也没有接入在线生成接口。
 
 ## 数据入口
 
 - `src/data/lexicon.ts`：原有词条、合并后的查询 API 和稳定 ID；旧学习记录可继续匹配。
 - `src/data/lexicon-extra.ts`：新增词族和词条。每条提供中英释义、词性数组、美式宽式 IPA、学习拆分、双语例句，适用时提供屈折变化或用法说明。
 - `src/data/lexicon-everyday.ts`：48 个常用基础名词，含释义、IPA、双语例句与常见词形；不为基础词编造词根。
-- `src/data/lexicon-scenarios.ts`：本轮新增 112 个常用词，包含时间、餐饮、物品、自然、出行、工作，以及常用动作、描述词和副词；每词配原创双语例句。
-- `src/data/word-topics.ts`：八类编辑主题，通过稳定词条 ID 分类，不用释义关键词猜测。
+- `src/data/lexicon-scenarios.ts`：112 个场景常用词，包含时间、餐饮、物品、自然、出行、工作，以及常用动作、描述词和副词；每词配原创双语例句。
+- `src/data/lexicon-foundation.ts`：新增 240 词，包括六组各 24 个主题词（家居、饮食、出行、人物、身体、学习）、56 个常用动词词条、24 个形容词词条、16 个副词词条。部分词兼有多种词性，不按词性重复计数。
+- `src/data/word-topics.ts`：十类编辑主题，通过稳定词条 ID 分类，不用释义关键词猜测。
 - `src/data/sentences.ts`：原有 12 课、合并后的 30 课、词块角色、解释与语序格式化。
 - `src/data/sentences-extra.ts`：新增 18 课，覆盖点餐、问票价、车站出发、未来计划、完成时、否定、比较、原因、条件和礼貌请求；每个词块都有双语作用解释。
 
@@ -20,7 +21,9 @@
 
 目前是教学词库，不是完整权威词典：没有声称覆盖所有词义、词性、口音或历史。IPA 固定为美式宽式标注；选择英式朗读只切换系统声音，不会把已有 IPA 自动改成英式。project、extract、import 等同形异音条目在用法说明中注明词性对应读音。系统 TTS 的实际声音由设备决定。
 
-`forms` 用于常见变化和搜索，不把这些变化计为新词；不可数名词无需生成虚假的复数。equipment、information 的不可数用法有单独说明。patho 词族不包含表示“小路”的 path。
+`forms` 用于常见变化和搜索，不把这些变化计为新词；不可数名词无需生成虚假的复数。equipment、information、traffic、knowledge 等不可数词有单独说明；be → was、give → given、tooth → teeth、good → better 等词形均可搜索回原词。close、use、live 等同形异音词按当前收录词性显示音标，并注明其他读法。patho 词族不包含表示“小路”的 path。
+
+本轮不扩充相似句型，保留已有 30 个拆解课程，以每词的新双语例句扩充应用场景。新增 be、have、give、stay、live 等基础词后，现有课程能直接关联更多词条。
 
 句子中“主语／宾语”属于句法角色，“时间／来源／方式”属于语义作用。这种混合标注是面向入门者的短语解释，不是词性标签，也不是任意句子的自动解析。一般“地点在前、时间在后”只是常见顺序，部分课程提供时间前置等自然替代。练习只判定是否匹配本课的示例，不把其他所有排列断言为不合语法。
 
@@ -30,11 +33,11 @@
 2. 填完整释义、例句、词性、IPA、词族关系；核对不规则变化和同形异音。
 3. 新词根补齐中英文来源和说明，并确保至少关联一个词条。
 4. 句子课程使用稳定的 chunk ID。每个允许顺序必须且只能包含全部词块一次，并给出适用解释；时间前置所需逗号用 `commaAfter` 表达。
-5. 执行 `pnpm test`，覆盖唯一性、词族关联、双语字段、搜索、旧备份兼容、替代语序和洗牌。内容准确性还需人工编辑审校，结构测试不能代替语言校对。
+5. 执行 `pnpm test`，覆盖唯一性、词族关联、双语字段、搜索、旧备份兼容、替代语序和洗牌；本轮另校验新增例句不与旧例句完全重复、重点不规则词形可检索、主题归属与不可数词不虚构复数。内容准确性还需人工编辑审校，结构测试不能代替语言校对。
 
 后续扩展到千词或万词规模时，应先确定获准使用的词典数据来源和许可，再引入构建脚本、来源字段、版本映射和全文检索，避免用未经审核的机械拆词堆数量。
 
-参考与核查入口：[用户提供的 Morpheme Lexicon](https://morphemelexicon.com/#/r/patho)、[Cambridge 的副词语序说明](https://dictionary.cambridge.org/grammar/british-grammar/adverbs-and-adverb-phrases-position)、[Cambridge telecommunication 词条](https://dictionary.cambridge.org/us/dictionary/english/telecommunication)。这些是参考链接，未下载其整部词典或复制例句。应用内单词详情提供对应 Morpheme Lexicon 词条链接，便于逐词核对。
+参考与核查入口：[用户提供的 Morpheme Lexicon](https://morphemelexicon.com/#/r/patho)、[Cambridge 的副词语序说明](https://dictionary.cambridge.org/grammar/british-grammar/adverbs-and-adverb-phrases-position)、[Cambridge telecommunication 词条](https://dictionary.cambridge.org/us/dictionary/english/telecommunication)。补充词条的发音核查入口包括 [Oxford medicine](https://www.oxfordlearnersdictionaries.com/definition/english/medicine)、[Oxford subject](https://www.oxfordlearnersdictionaries.com/definition/english/subject_1)。这些是参考链接，未下载其整部词典或复制例句。应用内单词详情提供对应 Morpheme Lexicon 词条链接，便于逐词核对。
 
 
 ## 展示与加载

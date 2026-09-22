@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { morphemeById, wordById, words } from '../src/data/lexicon';
+import { morphemeById, searchWords, wordById, words } from '../src/data/lexicon';
+import { foundationWords } from '../src/data/lexicon-foundation';
 import { matchesWordTopic, wordTopics, type WordTopic } from '../src/data/word-topics';
 import { morphemeSegments, nextFeaturedWord, sentenceSegments } from '../src/domain/word-display';
 import { shouldHintLowVolume } from '../src/domain/volume-hint';
@@ -50,4 +51,36 @@ test('low-volume hints require a real reading and have a one-minute cooldown', (
   for (const value of [0, 0.1, 0.19]) assert.equal(shouldHintLowVolume(value, null, 1000), true);
   assert.equal(shouldHintLowVolume(0.1, 1000, 60999), false);
   assert.equal(shouldHintLowVolume(0.1, 1000, 61000), true);
+});
+
+test('foundation vocabulary adds distinct examples and keeps irregular forms searchable by part of speech', () => {
+  const normalized = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const oldExamples = new Set(words.filter(word => !foundationWords.includes(word)).map(word => normalized(word.example.en)));
+  const additions = new Set<string>();
+  for (const word of foundationWords) {
+    const example = normalized(word.example.en);
+    assert.ok(!oldExamples.has(example) && !additions.has(example), `${word.id}: provide a distinct example`);
+    additions.add(example);
+    assert.equal(wordById.get(word.id), word);
+    assert.equal(new Set(word.forms).size, word.forms.length, `${word.id}: no duplicated forms`);
+  }
+  for (const [form, id] of [['was', 'be'], ['done', 'do'], ['given', 'give'], ['taken', 'take'], ['begun', 'begin'], ['ran', 'run'], ['swum', 'swim'], ['fallen', 'fall']]) {
+    assert.ok(searchWords(form, 'verb').some(word => word.id === id), `${form} should find ${id}`);
+  }
+  for (const [form, id] of [['teeth', 'tooth'], ['feet', 'foot'], ['women', 'woman'], ['shelves', 'shelf'], ['people', 'person']]) {
+    assert.ok(searchWords(form, 'noun').some(word => word.id === id), `${form} should find ${id}`);
+  }
+  assert.ok(searchWords('better', 'adjective').some(word => word.id === 'good'));
+  assert.ok(searchWords('worst', 'adjective').some(word => word.id === 'bad'));
+});
+
+test('new noun topics include Chinese and inflected searches while uncountable entries avoid invented plurals', () => {
+  assert.ok(searchWords('shelves', 'noun').filter(word => matchesWordTopic(word, 'home')).some(word => word.id === 'shelf'));
+  assert.ok(searchWords('牙齿', 'noun').filter(word => matchesWordTopic(word, 'body')).some(word => word.id === 'tooth'));
+  assert.ok(matchesWordTopic(wordById.get('banana')!, 'food'));
+  assert.ok(matchesWordTopic(wordById.get('passenger')!, 'travel'));
+  assert.ok(matchesWordTopic(wordById.get('engineer')!, 'people'));
+  assert.ok(matchesWordTopic(wordById.get('grammar')!, 'work'));
+  assert.ok(!matchesWordTopic(wordById.get('tooth')!, 'home'));
+  for (const id of ['traffic', 'parking', 'health', 'knowledge', 'meat', 'beef', 'pork']) assert.deepEqual(wordById.get(id)!.forms, []);
 });
