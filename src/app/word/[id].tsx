@@ -1,5 +1,4 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect } from 'react';
 import { Linking, View } from 'react-native';
 import { HighlightedSentence, HighlightedWord } from '@/components/grove/highlighted-word';
 import { Icon } from '@/components/grove/icon';
@@ -11,9 +10,8 @@ import { palette as c, serif } from '@/theme/palette';
 
 export default function WordScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t, local, visit, play, speaking, notify } = useApp();
+  const { t, local, play, speaking, notify } = useApp();
   const word = wordById.get(id);
-  useEffect(() => { if (word) visit(word.id); }, [word, visit]);
   if (!word) return <Page><PageHeader title={t('wordFilter')}/><Empty message={t('notFound')} action={<Button onPress={() => router.replace('/')}>{t('goHome')}</Button>}/></Page>;
   return <Page narrow><PageHeader title={t('discover')}/>
     <Reveal style={{ marginBottom: 27 }}><View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}><HighlightedWord word={word} selectable accessibilityRole="header" style={{ fontFamily: serif, fontSize: word.spelling.length > 16 ? 30 : word.spelling.length > 11 ? 38 : 49, lineHeight: 61, letterSpacing: -1, flexShrink: 1 }}/><AudioButton text={word.spelling}/></View>
@@ -21,10 +19,10 @@ export default function WordScreen() {
       <View style={[ui.chips, { marginTop: 16, alignItems: 'center' }]}><StatusBadge word={word}/>{word.pos.map(pos => <View key={pos} style={{ borderRadius: 8, backgroundColor: '#E8EEDC', paddingVertical: 5, paddingHorizontal: 10 }}><T style={{ color: '#788866', fontSize: 12 }}>{posAbbreviation[pos]} {t(pos)}</T></View>)}</View>
       <T selectable style={{ fontSize: 20, lineHeight: 32, marginTop: 15 }}>{local(word.meaning)}</T>
     </Reveal>
-    <Reveal delay={120}><SectionLabel title={t('buildingBlocks')}/><View style={ui.card}>
+    {word.parts.length > 1 && <Reveal delay={120}><SectionLabel title={t('buildingBlocks')}/><View style={ui.card}>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>{word.parts.map((part, index) => <View key={`${part}-${index}`} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>{index > 0 && <T style={{ color: '#ADAF9D', fontSize: 20 }}>+</T>}<View style={{ paddingHorizontal: 18, paddingVertical: 9, backgroundColor: index % 2 === 0 ? '#E7EFDC' : '#F6ECDD', borderRadius: 12 }}><T selectable style={{ fontFamily: serif, fontSize: 24, color: index % 2 === 0 ? '#69824F' : '#A08257' }}>{part}</T></View></View>)}</View>
       <T style={{ fontSize: 11, color: c.muted, marginTop: 16 }}>{t('learningHint')}</T>
-    </View></Reveal>
+    </View></Reveal>}
     <Reveal delay={160} style={{ marginTop: 28 }}><SectionLabel title={t('example')} right={<Tap accessibilityLabel={t('exampleListen')} onPress={() => void play(word.example.en)} style={{ padding: 10, backgroundColor: c.mint, borderRadius: 22 }}><Icon name={speaking === word.example.en ? 'stop' : 'sound'} size={18}/></Tap>}/>
       <View style={[ui.card, { backgroundColor: '#FFFCF5' }]}><T style={{ fontFamily: serif, fontSize: 49, lineHeight: 35, color: '#D7C7A3' }}>“</T><HighlightedSentence word={word} selectable style={{ fontFamily: serif, fontSize: 23, lineHeight: 35, marginTop: 4 }}/><T selectable style={{ color: '#959984', fontSize: 14, lineHeight: 24, marginTop: 14 }}>{word.example.zh}</T></View>
     </Reveal>

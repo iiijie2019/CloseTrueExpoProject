@@ -1,6 +1,8 @@
 import type { Localized, Word } from '@/domain/models';
 import { scenarioGroups } from './lexicon-scenarios';
 import { foundationGroups } from './lexicon-foundation';
+import { dailyLifeGroups } from './lexicon-daily-life';
+import { practicalGroups } from './lexicon-practical';
 
 export const wordTopics = {
   time: { zh: '时间类名词', en: 'Time nouns' },
@@ -13,6 +15,10 @@ export const wordTopics = {
   work: { zh: '学习与工作', en: 'Study & work' },
   home: { zh: '家居与房间', en: 'Home & rooms' },
   body: { zh: '身体与健康', en: 'Body & health' },
+  clothing: { zh: '服饰与穿搭', en: 'Clothing & accessories' },
+  digital: { zh: '数码与网络', en: 'Digital life' },
+  leisure: { zh: '文娱与运动', en: 'Arts & leisure' },
+  places: { zh: '城市与地点', en: 'Places & directions' },
 } satisfies Record<string, Localized>;
 export type WordTopic = keyof typeof wordTopics;
 
@@ -27,9 +33,15 @@ const related: Record<WordTopic, readonly string[]> = {
   work: [],
   home: [],
   body: [],
+  clothing: [],
+  digital: [],
+  leisure: [],
+  places: [],
 };
 const topicIds = Object.fromEntries((Object.keys(wordTopics) as WordTopic[]).map(topic => [topic, new Set([
   ...related[topic], ...(topic in scenarioGroups ? scenarioGroups[topic as keyof typeof scenarioGroups].map(word => word.id) : []),
   ...(topic in foundationGroups ? foundationGroups[topic as keyof typeof foundationGroups].map(word => word.id) : []),
+  ...(topic in dailyLifeGroups ? dailyLifeGroups[topic as keyof typeof dailyLifeGroups].map(word => word.id) : []),
+  ...(topic in practicalGroups ? practicalGroups[topic as keyof typeof practicalGroups].map(word => word.id) : []),
 ])])) as Record<WordTopic, Set<string>>;
 export const matchesWordTopic = (word: Word, topic: WordTopic | 'all') => topic === 'all' || topicIds[topic].has(word.id);

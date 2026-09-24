@@ -20,7 +20,6 @@ type Context = {
   status: (id: string) => WordStatus;
   mark: (id: string, status: WordStatus) => Promise<void>;
   setPreference: <K extends keyof Preferences>(key: K, value: Preferences[K]) => Promise<void>;
-  visit: (id: string) => void;
   play: (text: string) => Promise<void>; stop: () => void;
   notify: (text: string, action?: () => void) => void;
   importData: (incoming: UserData, preferImported: boolean) => Promise<void>;
@@ -101,10 +100,6 @@ export function AppProvider({ children }: React.PropsWithChildren) {
     try { await commit(old => ({ ...old, preferences: { ...old.preferences, [key]: value } })); }
     catch { notify(t('saveError')); }
   }, [commit, notify, t]);
-  const visit = useCallback((id: string) => {
-    if (!wordById.has(id)) return;
-    void commit(old => ({ ...old, recent: [id, ...old.recent.filter(item => item !== id)].slice(0, 20) })).catch(() => {});
-  }, [commit]);
 
   const stop = useCallback(() => {
     speechId.current++;
@@ -166,7 +161,7 @@ export function AppProvider({ children }: React.PropsWithChildren) {
 
   return <AppContext.Provider value={{ data, ready, loadError, language, speaking, toast, t,
     local: value => value[language], status: id => data.records[id]?.status ?? 'unknown',
-    mark, setPreference, visit, play, stop, notify, importData, restore, hasRecovery, reload: () => setAttempt(a => a + 1),
+    mark, setPreference, play, stop, notify, importData, restore, hasRecovery, reload: () => setAttempt(a => a + 1),
     flushPendingWrites: async () => { await queue.current; },
   }}>{children}</AppContext.Provider>;
 }
